@@ -1,0 +1,140 @@
+import tkinter as ttk
+import logging
+import os
+
+from PIL import Image, ImageTk
+
+class Monitor:
+	"""class to create a monitor block
+		Attributes:
+			- monitor_query = list of dict items with variable names and data types
+	"""
+	def __init__(self,master,name):
+		self.master = master
+		self.name = name
+		
+		self.monitor_frame = ttk.LabelFrame(self.master,text=self.name)
+		self.members = {}	
+		self.query_items = []
+
+class Setpoint:
+	""" class to keep track of setpoint and actual value"""
+	def __init__(self,name,min,max,unit=''):
+		self.name = name
+		
+		self.min = min
+		self.max = max
+		self.unit = unit
+		
+		#special display variables
+		self.entry_value = ttk.DoubleVar()
+		self.actual_value = ttk.StringVar()
+		self.actual_value.set('----')
+		self.display_vars = [self.entry_value, self.actual_value]
+		
+	def set_target_value(self,value):
+		if value >= self.min and value < self.max:
+			self.target_value.set(value)
+		else:
+			logging.warning('Value '+str(value)+' outside possible range, valid range is: '+ '->'.join((str(self.min),str(self.max))))
+			
+	def create_gui_elements(self,master):
+		self.frame = ttk.Frame(master)
+
+		self.setpoint_description_label = ttk.Label(self.frame,text=self.name)
+		self.setpoint_description_label.grid(column=1,row=1)
+		
+		self.actual_value_label = ttk.Label(self.frame,textvariable = self.actual_value)
+		self.actual_value_label.grid(column=3,row=1)
+		
+		#self.target_value_label = ttk.Label(self.frame,textvariable = self.target_value)#text='{:3.2f}'.format(self.target_value))
+		#self.target_value_label.grid(column=2,row=1)
+		
+		self.setpoint_entry = ttk.Entry(self.frame,width=7,textvariable = self.entry_value)
+		self.setpoint_entry.grid(column=4,row=1)
+		
+		self.target_value_label = ttk.Label(self.frame,text = self.unit)
+		self.target_value_label.grid(column=5,row=1)
+	
+class SetpointMonitor(Monitor):
+	def __init__(self,master,name):
+		Monitor.__init__(self,master,name)
+	
+	def update(self,actual_values={}):
+		for name,value in actual_values.items():
+			try:
+				self.members[name].actual_value.set('{:3.2f}'.format(value))
+			except KeyError:
+					logging.warning(name + ' query_item not found!')
+	
+	def add_setpoint(self,setpoint_name,min_val,max_val,unit=''):
+		self.members[setpoint_name.lower()] = Setpoint(setpoint_name,min_val,max_val,unit)
+		self.query_items.append(setpoint_name.lower())
+		self.members[setpoint_name.lower()].create_gui_elements(self.monitor_frame)
+		self.members[setpoint_name.lower()].frame.pack()
+		
+		
+class Interlock:
+	def __init__(self,name):
+		self.name = name
+		self.status = False
+		
+	def create_gui_elements(self,master):
+		self.frame = ttk.Frame(master)
+		self.size = {'width':25,'height':25}
+		
+		self.canvas = ttk.Canvas(self.frame,**self.size)
+		
+		#self.red_light = ttk.PhotoImage(file='images/red_light.gif')
+		package_path = '/'.join(os.path.dirname(__file__).split('\\')[:-1])
+		red_light_image = Image.open(package_path + '/images/red_light.png')
+		self.red_light_photo = ImageTk.PhotoImage(red_light_image)
+		self.canvas.create_image((12.5,12.5),image=self.red_light_photo,anchor=ttk.CENTER)
+		
+		green_light_image = Image.open(package_path + '/images/green_light.png')
+		self.green_light_photo = ImageTk.PhotoImage(green_light_image)
+		#self.canvas.create_image((12.5,12.5),image=self.green_light_photo,anchor=ttk.CENTER)
+		
+		#self.canvas.create_image(0,0,image=self.red_light,anchor=ttk.NW)
+		self.canvas.grid(column=1,row=1)
+		
+		self.member_description_label = ttk.Label(self.frame,text=self.name)
+		self.member_description_label.grid(column=2,row=1)
+		
+		red_label = ttk.Label(image=self.red_light_photo)
+		red_label.image = self.red_light_photo
+		
+		green_label = ttk.Label(image=self.green_light_photo)
+		green_label.image = self.green_light_photo
+		
+	def set_false(self):
+		self.status = False
+		self.canvas.delete(self.canvas.find_all()[0])
+		self.canvas.create_image((12.5,12.5),image=self.red_light_photo,anchor=ttk.CENTER)
+
+	def set_true(self):
+		self.status = True
+		self.canvas.delete(self.canvas.find_all()[0])
+		self.canvas.create_image((12.5,12.5),image=self.green_light_photo,anchor=ttk.CENTER)
+		
+		
+class InterlockMonitor(Monitor):
+	def __init__(self,master,name):
+		Monitor.__init__(self,master,name)
+
+	
+	def add_interlock(self,interlock_name):
+		self.members[interlock_name.lower()] = Interlock(interlock_name)
+		self.query_items.append(interlock_name.lower())
+		self.members[interlock_name.lower()].create_gui_elements(self.monitor_frame)
+		self.members[interlock_name.lower()].frame.pack(fill=ttk.X)
+		
+	def update(self,actual_values={}):
+		for name,value in actual_values.items():
+			try:
+				if value:
+					self.members[name].set_true()
+				else:
+					self.members[name].set_false()
+			except:
+				pass
