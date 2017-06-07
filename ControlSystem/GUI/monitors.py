@@ -14,7 +14,7 @@ class Monitor:
 		self.name = name
 		
 		self.monitor_frame = ttk.LabelFrame(self.master,text=self.name)
-		self.members = {}	
+		self.members = {}
 		self.query_items = []
 
 class Setpoint:
@@ -31,13 +31,7 @@ class Setpoint:
 		self.actual_value = ttk.StringVar()
 		self.actual_value.set('----')
 		self.display_vars = [self.entry_value, self.actual_value]
-		
-	def set_target_value(self,value):
-		if value >= self.min and value < self.max:
-			self.target_value.set(value)
-		else:
-			logging.warning('Value '+str(value)+' outside possible range, valid range is: '+ '->'.join((str(self.min),str(self.max))))
-			
+				
 	def create_gui_elements(self,master):
 		self.frame = ttk.Frame(master)
 
@@ -56,6 +50,8 @@ class Setpoint:
 		self.target_value_label = ttk.Label(self.frame,text = self.unit)
 		self.target_value_label.grid(column=5,row=1)
 	
+	
+	
 class SetpointMonitor(Monitor):
 	def __init__(self,master,name):
 		Monitor.__init__(self,master,name)
@@ -73,7 +69,18 @@ class SetpointMonitor(Monitor):
 		self.members[setpoint_name.lower()].create_gui_elements(self.monitor_frame)
 		self.members[setpoint_name.lower()].frame.pack()
 		
-		
+	def get_setpoint(self,setpoint_name):
+		try:
+			val = self.members[setpoint_name].entry_value.get()
+			try:
+				nVal = float(val)
+			except ValueError:
+				nVal = val
+		except KeyError:
+			logging.warning('Key {1} does not exist in {2}'.format(setpoint_name,self.name))
+			nVal= None
+		return nVal
+	
 class Interlock:
 	def __init__(self,name):
 		self.name = name
