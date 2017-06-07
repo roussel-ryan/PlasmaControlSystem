@@ -39,10 +39,12 @@ class PlasmaHandler:
 			send the panel a dict with the same shape but replace the var name with dict {var_name:value}	
 		"""
 		self.monitor_panel_data = {}
-		for device_ID,device in self.power_supplies.items():
-			self.monitor_panel_data[device_ID] = {}
-			self.monitor_panel_data[device_ID]['current'] = device.get('current')
-			self.monitor_panel_data[device_ID]['voltage'] = device.get('voltage')
+		for device_ID,device_obj in self.power_supplies.items():
+			if device_obj.status == device.ACTIVE:
+				device_obj.focus()
+				self.monitor_panel_data[device_ID] = {}
+				self.monitor_panel_data[device_ID]['current'] = device_obj.get('current')
+				self.monitor_panel_data[device_ID]['voltage'] = device_obj.get('voltage')
 			
 		monitor_panel_object.update(self.monitor_panel_data)
 	

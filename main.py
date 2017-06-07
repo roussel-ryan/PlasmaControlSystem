@@ -1,7 +1,8 @@
 
 import logging
-import numpy as np
+import time
 
+import numpy as np
 import tkinter as ttk
 
 from ControlSystem.GUI import panel
@@ -50,14 +51,31 @@ class App:
 		
 		for child in self.master_frame.winfo_children(): child.grid_configure(padx=5,pady=5)
 		
+		self.update_count = 0
+		
 		self.update()
+		
 		
 	def update(self):
 		"""
-			does all the polling for current data
+			does all the polling for current data,temporarily raises the logger level
+			to info to suppress pyvisa debug messages which slow program
 		"""
+		if self.update_count % 100:
+			t0 = time.time()
+		
+		logger = logging.getLogger()
+		orig_level = logger.getEffectiveLevel()
+		logger.setLevel(logging.INFO)
 		self.handler.update_monitor_panel(self.monitor_panel)
-		self.master_frame.after(10,self.update)
+		logger.setLevel(orig_level)
+		
+		if self.update_count % 100:
+			logging.info('elapsed time for update: {} s'.format(time.time()-t0))
+		
+		self.update_count +=1
+		
+		self.master_frame.after(100,self.update)
 		
 		
 def example():

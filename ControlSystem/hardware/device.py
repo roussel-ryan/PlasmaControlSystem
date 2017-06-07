@@ -137,15 +137,28 @@ class SerialDevice(Device):
 
 				
 class TDKPowerSupply(VISADevice):
-	def __init__(self,device_name,device_port):
+	def __init__(self,device_name,device_port,device_RS485_address = 6):
 		VISADevice.__init__(self,device_name,device_port)
-		self.set_commands = {'voltage':':VOLT {:3.2f}',':CURR':'PC {:3.2f}'}
+		self.set_commands = {'voltage':':VOLT {:3.2f}','current':':CURR {:3.2f}'}
 		self.get_commands = {'voltage':'MEAS:VOLT?','current':'MEAS:CURR?'}
+		self.RS485_address = device_RS485_address
 		
+		self.unlock()
+		
+		#clear errors
+		self.write('*CLS')
+		
+		if self.query('OUTP:STAT?') == 'OFF':
+			logging.info('Turning device on')
+			self.write('OUTP:STAT ON')
+		self.check_errors()
+		
+		self.set('voltage',0.0)
+		self.set('current',0.0)
 	def set(self,name,value):
 		try:
-			logging.info(value)
 			self.send_command(self.write,self.set_commands[name].format(value))
+			self.check_errors('set {},{}'.format(name,value))
 			#time.sleep(1)
 		except KeyError:
 			logging.error('Incorrect set key for TDKPowerSupply object')
@@ -153,10 +166,34 @@ class TDKPowerSupply(VISADevice):
 	def get(self,name):
 		try:
 			var = self.query(self.get_commands[name])
+			self.check_errors('get '+name)
 		except KeyError:
 			logging.error('Incorrect get key for TDKPowerSupply object')
 			var = None
-		return float(var)
+			
+		try:
+			nVar = float(var)
+		except TypeError:
+			nVar = var
+		return nVar
+	
+	def check_errors(self,cmd='UNKNOWN'):
+		if self.status == ACTIVE:
+			error_description = self.send_command(self.query,'SYST:ERR?').split(',')
+		else:
+			error_description = ['0']
+		if float(error_description[0]) < 0 :
+			#error
+			logging.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self.name + ' with cmd ' + cmd)
+		elif float(error_description[0]) > 0:
+			#warning
+			logging.warning(error_description[1] + ' in ' + self.name)
+		else:
+			#no error
+			logging.debug('No error')
+			pass	
+	def focus(self):
+		self.write('INST:SEL {}'.format(self.RS485_address))
 	
 	def reset(self):
 		self.send_command('RST')

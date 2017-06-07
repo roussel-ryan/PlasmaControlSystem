@@ -61,7 +61,9 @@ class SetpointMonitor(Monitor):
 			try:
 				self.members[name].actual_value.set('{:3.2f}'.format(value))
 			except KeyError:
-					logging.warning(name + ' query_item not found!')
+				logging.warning(name + ' query_item not found!')
+			except TypeError:
+				self.members[name].actual_value.set('NaN')
 	
 	def add_setpoint(self,setpoint_name,min_val,max_val,unit=''):
 		self.members[setpoint_name.lower()] = Setpoint(setpoint_name,min_val,max_val,unit)
