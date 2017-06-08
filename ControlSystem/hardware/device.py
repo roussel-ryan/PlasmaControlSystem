@@ -48,116 +48,108 @@ class Device:
 		if self.status > NO_COMM:
 			self.status = LOCKED
 
-class VISADevice(Device):
-	def __init__(self,device_name,device_port):
-		Device.__init__(self,device_name)
-		self.port = device_port
+class VISAHandler:
+	"""
+		VISAHandler(address,RS485_enabled=False)
+		Attributes:
+			- rm = resource manager object
+			- inst = visa instrument object
+			- current_RS485_address = current RS485 address if RS485_enabled = True
 		
-		self.connect(self.port)
-		self.check_connection()
+		Methods:
+			connect() - attempt to connect to device, if it fails it returns False
+			list_resources() - utility function showing avalible resources
+			write(cmd) - write cmd to device and return True if it succeeds, False if it does not
+			query(cmd) - write cmd to device and read afterwards return read if it succeeds, False if it does not
+			select_RS485_device(RS485_address) - change to device with RS485_address as the address
+			close() - close resource
+	"""
 	
-	def check_connection(self):
-		"""
-			check connection to device by sending a test
-		"""
-		try:
-			self.instrument.write('w')
-			self.status = LOCKED
-		except AttributeError:
-			logging.warning('Check_connection failed, device {} does not exist due to no connection'.format(self.name))
-		except visa.VisaIOError as e:
-			logging.warning(e.args[0])
-			self.status = NO_COMM
-			
-	def connect(self,port):
-		"""
-			Attempt a connection to the device
-		"""
-		try:
-			rm = visa.ResourceManager()
-			self.instrument = rm.get_instrument(port)
-			self.status = LOCKED
-		except visa.VisaIOError as e:
-			logging.warning('Connection to device {} failed '.format(self.name) + e.args[0])
-			self.status = NO_COMM
-		#del(rm)
+	def __init__(self,address='',RS485_enabled=False):
+		self.rm = visa.ResourceManager()
+		self.address = address
+		
+		if RS485_enabled:
+			self.RS485_enabled = True
+			self.current_RS485_address = ''
+		
+		self.connect()
+		
+	def connect(self):
+		if not self.address == '':
+			try:
+				self.inst = self.rm.open_resource(self.address)
+				return True
+			except visa.VisaIOError as e:
+				logging.error(e.arg[0])
+				return False
+		else:
+			logging.error('No address specified')
+			return False
 	
+	def list_resources(self):
+		logging.info(self.rm.list_resources())
+		
 	def write(self,cmd):
 		try:
-			self.send_command(self.instrument.write,cmd)
-		except visa.VisaIOError as e:
-			logging.error(e.args[0])
+			self.inst.write(cmd)
+			return True
 		except AttributeError:
-			logging.warning('Write cmd failed, device {} does not exist due to no connection'.format(self.name))
+			logging.error('Resource was not connected')
+			return False
+		except visa.VisaIOError as e:
+			logging.error(e.arg[0])
+			return False	
 	
-			
 	def query(self,cmd):
 		try:
-			ret = self.send_command(self.instrument.query,cmd)
-		except visa.VisaIOError as e:
-			logging.error(e.args[0])
-			ret = None
+			return self.inst.query(cmd)
 		except AttributeError:
-			logging.warning('Query cmd failed, device {} does not exist due to no connection'.format(self.name))
-			ret = None
-			
-		return ret
-		
-	def clean(self):
-		self.instrument.close()
-		
-		
-class SerialDevice(Device):
-	"""super-class for storing serial configuration data for serial devices"""
-	def __init__(self,device_name,device_port):
+			logging.error('Resource was not connected')
+			return False
+		except visa.VisaIOError as e:
+			logging.error(e.arg[0])
+			return False
+	
+	def select_RS485_device(self,RS485_address):			
+		if self.RS485_enabled:
+			if not RS485_address == self.current_RS485_address:
+				self.write('INST:SEL {}'.format(RS485_address))
+	
+	def close(self):
+		try:
+			self.instrument.close()
+			return True
+		except AttributeError:
+			logging.error('Resource was not connected')
+			return False
+		except visa.VisaIOError as e:
+			logging.error(e.arg[0])
+			return False
+					
+class TDKPowerSupply(Device):
+	def __init__(self,device_name,visa_handler,device_RS485_address = 6):
 		Device.__init__(self,device_name)
-		self.device_port = device_port
-		self.connect()
-
-	def connect(self):
-		try:
-			self.ser = serial.Serial(self.device_port)
-		except serialutil.SerialException:
-			self.status = NO_COMM
-			
-	def send_command(self,command_string):
-		command = super(Device,SerialDevice,self).send_command(command_string)	
-		try:
-			self.ser.write(command)
-		except serialutil.SerialException:
-			self.status = NO_COMM
-		
-	def query(self,query_string):
-		try:
-			self.ser.write(query_string)
-			data = self.ser.read(20)
-		except serialutil.SerialException:
-			self.status = NO_COMM
-		return data
-
-				
-class TDKPowerSupply(VISADevice):
-	def __init__(self,device_name,device_port,device_RS485_address = 6):
-		VISADevice.__init__(self,device_name,device_port)
 		self.set_commands = {'voltage':':VOLT {:3.2f}','current':':CURR {:3.2f}'}
 		self.get_commands = {'voltage':'MEAS:VOLT?','current':'MEAS:CURR?'}
 		self.RS485_address = device_RS485_address
+		self.handler = visa_handler
 		
 		self.unlock()
 		
 		#clear errors
-		self.write('*CLS')
+		self.handler.write('*CLS')
 		
-		if self.query('OUTP:STAT?') == 'OFF':
+		if self.handler.query('OUTP:STAT?') == 'OFF':
 			logging.info('Turning device on')
-			self.write('OUTP:STAT ON')
+			self.handler.write('OUTP:STAT ON')
 		self.check_errors()
 		
 		self.set('voltage',0.0)
 		self.set('current',0.0)
 	def set(self,name,value):
 		try:
-			self.send_command(self.write,self.set_commands[name].format(value))
+			self.send_command(self.handler.write,self.set_commands[name].format(value))
 			self.check_errors('set {},{}'.format(name,value))
 			#time.sleep(1)
 		except KeyError:
@@ -165,7 +157,7 @@ class TDKPowerSupply(VISADevice):
 		
 	def get(self,name):
 		try:
-			var = self.query(self.get_commands[name])
+			var = self.handler.query(self.get_commands[name])
 			self.check_errors('get '+name)
 		except KeyError:
 			logging.error('Incorrect get key for TDKPowerSupply object')
@@ -179,9 +171,10 @@ class TDKPowerSupply(VISADevice):
 	
 	def check_errors(self,cmd='UNKNOWN'):
 		if self.status == ACTIVE:
-			error_description = self.send_command(self.query,'SYST:ERR?').split(',')
+			error_description = self.send_command(self.handler.query,'SYST:ERR?').split(',')
 		else:
 			error_description = ['0']
+			
 		if float(error_description[0]) < 0 :
 			#error
 			logging.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self.name + ' with cmd ' + cmd)
@@ -191,12 +184,6 @@ class TDKPowerSupply(VISADevice):
 		else:
 			#no error
 			logging.debug('No error')
-			pass	
-	def focus(self):
-		self.write('INST:SEL {}'.format(self.RS485_address))
-	
-	def reset(self):
-		self.send_command('RST')
 		
 		
 if __name__=='__main__':
