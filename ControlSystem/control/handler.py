@@ -14,32 +14,40 @@ class PlasmaHandler:
 		Attributes:
 			heater_current,heater_voltage etc. = float vars storing most recent data from measurements
 			interlock_water,interlock_vacuum, etc. = boolians for storing interlock state variables
-			devices = dictonary of hardware objects for interfacing with
+			devices = dictionary of hardware objects for interfacing with
 			state = dictonary of state reporting from devices
 	
 	"""
 	
 	def __init__(self):
-		"""Intialization:
+		"""Initialization:
 			create hardware objects
 			create self storage for attributes
-			send intialization data to GUI
+			send initialization data to GUI
 			
 		"""
-		self.power_supplies = {'heater':device.TDKPowerSupply('heater_pwr','COM2'),'discharge':device.TDKPowerSupply('discharge_pwr','COM3'),
-			'solenoid':None,'vacuum':None}
-		self.interlock_devices = {'water',device.SerialDevice('water','COM1')}
+		tdk_bank_handler = device.VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+		
+		tdk = device.TDKPowerSupply('discharge_pwr',tdk_bank_handler) 
+		tdk2 = device.TDKPowerSupply('heater_pwr',tdk_bank_handler,1)
+		tdk.unlock()
+		tdk2.unlock()
+		self.power_supplies = {'discharge':tdk,'heater':tdk2}
+		#self.power_supplies = {'heater':None,'discharge':tdk,
+		#	'solenoid':None,'vacuum':None}
+		#self.interlock_devices = {'water':None}
 	
 	
 	def update_monitor_panel(self,monitor_panel_object):
-		"""Handle updating the montior panel values for display
+		"""Handle updating the monitor panel values for display
 			send the panel a dict with the same shape but replace the var name with dict {var_name:value}	
 		"""
 		self.monitor_panel_data = {}
-		for device_ID,device in self.power_supplies.items():
-			self.monitor_panel_data[device_ID] = {}
-			self.monitor_panel_data[device_ID]['current'] = device.get('current')
-			self.monitor_panel_data[device_ID]['voltage'] = device.get('voltage')
+		for device_ID,device_obj in self.power_supplies.items():
+			if device_obj.status == device.ACTIVE:
+				self.monitor_panel_data[device_ID] = {}
+				self.monitor_panel_data[device_ID]['current'] = device_obj.get('current')
+				self.monitor_panel_data[device_ID]['voltage'] = device_obj.get('voltage')
 			
 		monitor_panel_object.update(self.monitor_panel_data)
 	
@@ -72,5 +80,8 @@ class PlasmaHandler:
 			else:
 				pass
 		return {'locked':locked_devices,'no_comm':no_comm_devices}
-		
-
+	
+	
+	def close(self):
+		for name,item in self.power_supplies.items():
+			item.clean()
