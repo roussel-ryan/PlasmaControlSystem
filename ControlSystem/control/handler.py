@@ -26,9 +26,13 @@ class PlasmaHandler:
 			send initialization data to GUI
 			
 		"""
-		tdk = device.TDKPowerSupply('discharge_pwr','TCPIP0::169.254.223.84::inst0::INSTR') 
+		tdk_bank_handler = device.VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+		
+		tdk = device.TDKPowerSupply('discharge_pwr',tdk_bank_handler) 
+		tdk2 = device.TDKPowerSupply('heater_pwr',tdk_bank_handler,1)
 		tdk.unlock()
-		self.power_supplies = {'discharge':tdk}
+		tdk2.unlock()
+		self.power_supplies = {'discharge':tdk,'heater':tdk2}
 		#self.power_supplies = {'heater':None,'discharge':tdk,
 		#	'solenoid':None,'vacuum':None}
 		#self.interlock_devices = {'water':None}
@@ -41,7 +45,6 @@ class PlasmaHandler:
 		self.monitor_panel_data = {}
 		for device_ID,device_obj in self.power_supplies.items():
 			if device_obj.status == device.ACTIVE:
-				device_obj.focus()
 				self.monitor_panel_data[device_ID] = {}
 				self.monitor_panel_data[device_ID]['current'] = device_obj.get('current')
 				self.monitor_panel_data[device_ID]['voltage'] = device_obj.get('voltage')

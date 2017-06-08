@@ -75,7 +75,7 @@ class App:
 		
 		self.update_count +=1
 		
-		self.master_frame.after(100,self.update)
+		self.master_frame.after(1000,self.update)
 		
 		
 def example():
@@ -85,7 +85,7 @@ def example():
 	root.mainloop()
 	
 if __name__=='__main__':
-	logging.basicConfig(level=logging.INFO)
+	logging.basicConfig(level=logging.DEBUG)
 	#handler = handler.PlasmaHandler()
 	#handler.close()
 	example()
