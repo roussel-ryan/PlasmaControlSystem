@@ -3,6 +3,9 @@ import numpy as np
 import logging
 
 from ..hardware import device
+from ..hardware import handler
+
+
 
 class PlasmaHandler:
 
@@ -26,7 +29,7 @@ class PlasmaHandler:
 			send initialization data to GUI
 			
 		"""
-		tdk_bank_handler = device.VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+		tdk_bank_handler = handler.VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
 		
 		tdk = device.TDKPowerSupply('discharge_pwr',tdk_bank_handler) 
 		tdk2 = device.TDKPowerSupply('heater_pwr',tdk_bank_handler,1)
@@ -81,6 +84,15 @@ class PlasmaHandler:
 				pass
 		return {'locked':locked_devices,'no_comm':no_comm_devices}
 	
+	def send_user_inputs(self,monitor_panel_object):
+		"""get user inputs from interface and send commands to supplies"""
+		inputs = monitor_panel_object.get_input()
+		for device_name,item in inputs.items():
+			for param_name,param_value in item.items():
+				try:
+					self.power_supplies[device_name].set(param_name,param_value)
+				except KeyError:
+					logging.warning('Device {} does not exist'.format(device_name))
 	
 	def close(self):
 		for name,item in self.power_supplies.items():

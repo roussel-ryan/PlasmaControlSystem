@@ -34,22 +34,32 @@ class MonitorPanel(Panel):
 		Panel.__init__(self,master)
 		
 		self.heater_monitor = monitors.SetpointMonitor(self.frame,'Heater')
-		self.heater_monitor.add_setpoint('Current',0.0,1000.0,'A')
-		self.heater_monitor.add_setpoint('Voltage',0.0,7.0,'V')
+		self.heater_monitor.add_setpoint('Current','A')
+		self.heater_monitor.add_setpoint('Voltage','V')
 		self.members[self.heater_monitor.name.lower()] = self.heater_monitor
 		
 		self.discharge_monitor = monitors.SetpointMonitor(self.frame,'Discharge')
-		self.discharge_monitor.add_setpoint('Current',0.0,120.0,'A')
-		self.discharge_monitor.add_setpoint('Voltage',0.0,50.0,'V')
+		self.discharge_monitor.add_setpoint('Current','A')
+		self.discharge_monitor.add_setpoint('Voltage','V')
 		self.members[self.discharge_monitor.name.lower()] = self.discharge_monitor
 		
 		self.solenoid_monitor = monitors.SetpointMonitor(self.frame,'Solenoid')
-		self.solenoid_monitor.add_setpoint('Current',0.0,120.0,'A')
-		self.solenoid_monitor.add_setpoint('Voltage',0.0,50.0,'V')
+		self.solenoid_monitor.add_setpoint('Current','A')
+		self.solenoid_monitor.add_setpoint('Voltage','V')
 		self.members[self.solenoid_monitor.name.lower()] = self.solenoid_monitor
 		
 		self.gather_and_pack()
-		
+	
+	def get_input(self):
+		self.inputs = {}
+		for monitor_name,monitor in self.members.items():
+			self.inputs[monitor_name] = {}
+			for setpoint_name,setpoint in monitor.members.items()
+				val = monitor.get_new_setpoint_value(setpoint_name)
+				if val:
+					self.inputs[monitor_name][setpoint_name] = val
+			
+		return self.inputs
 
 class ControlPanel(Panel):
 	def __init__(self,master):

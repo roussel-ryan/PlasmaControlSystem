@@ -19,19 +19,23 @@ class Monitor:
 
 class Setpoint:
 	""" class to keep track of setpoint and actual value"""
-	def __init__(self,name,min,max,unit=''):
+	def __init__(self,name,unit=''):
 		self.name = name
-		
-		self.min = min
-		self.max = max
 		self.unit = unit
 		
 		#special display variables
 		self.entry_value = ttk.DoubleVar()
+		self.entry_value.trace('w',self.set_new_entry)
+		
 		self.actual_value = ttk.StringVar()
-		self.actual_value.set('----')
+		self.actual_value.set('----')	
 		self.display_vars = [self.entry_value, self.actual_value]
-				
+		
+		self.new_entry = False
+	
+	def set_new_entry(self):
+		self.new_entry = True
+	
 	def create_gui_elements(self,master):
 		self.frame = ttk.Frame(master)
 
@@ -49,6 +53,14 @@ class Setpoint:
 		
 		self.target_value_label = ttk.Label(self.frame,text = self.unit)
 		self.target_value_label.grid(column=5,row=1)
+	
+	def get_new_entry_value(self):
+		if self.new_entry:
+			self.new_entry = False
+			return self.actual_value.get()
+		else:
+			return False
+			
 	
 	
 	
@@ -71,17 +83,22 @@ class SetpointMonitor(Monitor):
 		self.members[setpoint_name.lower()].create_gui_elements(self.monitor_frame)
 		self.members[setpoint_name.lower()].frame.pack()
 		
-	def get_setpoint(self,setpoint_name):
+	def get_new_setpoint_value(self,setpoint_name):
 		try:
-			val = self.members[setpoint_name].entry_value.get()
+			val = self.members[setpoint_name].get_new_entry_value()
 			try:
 				nVal = float(val)
 			except ValueError:
 				nVal = val
+			
+			if nVal:
+				return nVal
+			else:
+				return False
+			
 		except KeyError:
 			logging.warning('Key {1} does not exist in {2}'.format(setpoint_name,self.name))
-			nVal= None
-		return nVal
+			return False
 	
 class Interlock:
 	def __init__(self,name):
@@ -145,5 +162,5 @@ class InterlockMonitor(Monitor):
 					self.members[name].set_true()
 				else:
 					self.members[name].set_false()
-			except:
-				pass
+			except KeyError:
+				logging.warning('Key {1} does not exist in {2}'.format(setpoint_name,self.name))
