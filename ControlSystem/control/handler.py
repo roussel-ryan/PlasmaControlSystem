@@ -18,11 +18,19 @@ class PlasmaHandler:
 		- Sends commands to hardware controlling software and querys hardware control software 
 		
 		Attributes:
-			heater_current,heater_voltage etc. = float vars storing most recent data from measurements
-			interlock_water,interlock_vacuum, etc. = boolians for storing interlock state variables
 			devices = dictionary of hardware objects for interfacing with
 			state = dictonary of state reporting from devices
-	
+		
+		Queuing: queue commands need to have the following dict form:
+			cmd['type'] = <'get'> <'set'> <'return'>
+			cmd['device'] = 'device_name'
+			cmd['attribute'] = 'attribute_name'
+			cmd['value'] = attribute_value
+			
+			<'get'> = call a get function, get function should add a queue object <'return'> to 
+						give the GUI the value
+			<'set'> = call a set fucntion, can add to queue to return success status
+			<'return'> = added by a <'get'> function of update function to set value in GUI
 	"""
 	
 	def __init__(self,queue):
@@ -38,10 +46,40 @@ class PlasmaHandler:
 		tdk2 = device.TDKPowerSupply('heater_pwr',tdk_bank_handler,1)
 		tdk.unlock()
 		tdk2.unlock()
-		self.power_supplies = {'discharge':tdk,'heater':tdk2}
+		self.devices = {'discharge':tdk,'heater':tdk2}
+		
+		self.panels = []
 		
 		self.queue = queue	
-
+		
+	def process_queue(self):
+		while self.queue.qsize():
+			try:
+				cmd = self.queue.get(0)
+				type = cmd['type']
+				device_name = cmd['device_name']
+				attribute = cmd['attribute']
+				
+				if type == 'get':
+					val = self.devices[device_name].get(attribute)
+					self.queue.put({'type':'return','device':device_name,'attribute':attribute,'value': val})
+				elif: type == 'set':
+					self.devices[device_name].set(attribute,cmd['value'])
+				elif: type == 'return':
+					for panel in self.panels:
+						if monitor in panel.members:
+							monitor.update({attribute:cmd['value']})
+				else:
+					logging.warning('Queue command of incorrect type')
+			except KeyError:
+				logging.warning('Key error')
+			
+			except queue.Empty:
+				pass
+	
+	def add_panel(self,panel):
+		self.panels.append(panel)
+		
 	def update_monitor_panel(self,monitor_panel_object):
 		"""Handle updating the monitor panel values for display
 			send the panel a dict with the same shape but replace the var name with dict {var_name:value}	
@@ -49,11 +87,8 @@ class PlasmaHandler:
 		self.monitor_panel_data = {}
 		for device_ID,device_obj in self.power_supplies.items():
 			if device_obj.status == device.ACTIVE:
-				self.monitor_panel_data[device_ID] = {}
-				self.monitor_panel_data[device_ID]['current'] = device_obj.get('current')
-				self.monitor_panel_data[device_ID]['voltage'] = device_obj.get('voltage')
-			
-		monitor_panel_object.update(self.monitor_panel_data)
+				self.queue.put({'type':'return','device':device_name,'attribute':'current')
+				self.queue.put({'type':'return','device':device_name,'attribute':'voltage')
 	
 	
 	def update_diagram_panel(self,diagram_panel_object):
@@ -70,21 +105,7 @@ class PlasmaHandler:
 		self.interlock_panel_data = {}
 		for device_ID,device in self.interlock_devices.items():
 			self.interlock_panel_data[device_ID]['status'] = device.query('STATUS')
-			
-	
-	def get_interlock_status(self):
-		"""check if the plasma source is interlocked"""
-		no_comm_devices = []
-		locked_devices = []
-		for name,device in self.interlock_devices.items():
-			if device.device_status == device.NO_COMM:
-				no_comm_devices.append(name)
-			elif device.device_status == device.LOCKED:
-				locked_devices.append(name)
-			else:
-				pass
-		return {'locked':locked_devices,'no_comm':no_comm_devices}
-	
+
 	def send_user_inputs(self,monitor_panel_object):
 		"""get user inputs from interface and send commands to supplies"""
 		inputs = monitor_panel_object.get_input()
@@ -111,10 +132,13 @@ class UpdateDevices(threading.Thread):
 	def run(self):
 		while True:
 			for device_name,device in self.devices.items():
-				self.queue.put(self.get_device_data(device))
+				return_data = self.get_device_data(device)
+				self.queue.put(return_data[0])
+				self.queue.put(return_data[1])
 			time.sleep(0.1)
 	
 	def get_device_data(self,device):
-		return {'current': device.get('current'),'voltage':device.get('voltage')}
+		return [{'type':'return','device':device.name,'attribute':'current','value': device.get('current')},\
+			{'type':'return','device':device.name,'attribute':'voltage','value': device.get('voltage')}]
 	
 	

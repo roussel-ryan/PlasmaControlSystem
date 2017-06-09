@@ -22,8 +22,8 @@ class App:
 		
 		control_monitor_frame = ttk.Frame(self.master_frame) 
 		
-		self.monitor_panel = panel.MonitorPanel(control_monitor_frame)
-		self.monitor_panel.frame.grid(column=1,row=1)
+		monitor_panel = panel.MonitorPanel(control_monitor_frame)
+		monitor_panel.frame.grid(column=1,row=1)
 		
 		interlock_panel = panel.InterlockPanel(control_monitor_frame)
 		interlock_panel.frame.grid(column=1,row=2)
@@ -35,6 +35,11 @@ class App:
 		
 		button_panel = panel.BottomButtons(self.master_frame)
 		button_panel.frame.grid(column=1,row=2)
+		
+		self.plasma_handler.add_panel(monitor_panel)
+		self.plasma_handler.add_panel(interlock_panel)
+		self.plasma_handler.add_panel(control_panel)
+		self.plasma_handler.add_panel(button_panel)
 		
 		#define button functionality
 		#button_panel.members['Apply'].config(command = lambda: self.handler.send_user_inputs(self.monitor_panel))
