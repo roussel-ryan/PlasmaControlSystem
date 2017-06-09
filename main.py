@@ -36,7 +36,7 @@ class App:
 		button_panel.frame.grid(column=1,row=2)
 		
 		#define button functionality
-		button_panel.members['Apply'].config(command = lambda: self.handler.power_supplies['discharge'].set('voltage',self.monitor_panel.members['discharge'].get_setpoint('voltage')))
+		button_panel.members['Apply'].config(command = lambda: self.handler.send_user_inputs(self.monitor_panel))
 		
 		
 		

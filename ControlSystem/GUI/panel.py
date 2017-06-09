@@ -54,7 +54,7 @@ class MonitorPanel(Panel):
 		self.inputs = {}
 		for monitor_name,monitor in self.members.items():
 			self.inputs[monitor_name] = {}
-			for setpoint_name,setpoint in monitor.members.items()
+			for setpoint_name,setpoint in monitor.members.items():
 				val = monitor.get_new_setpoint_value(setpoint_name)
 				if val:
 					self.inputs[monitor_name][setpoint_name] = val

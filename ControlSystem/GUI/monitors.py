@@ -33,7 +33,7 @@ class Setpoint:
 		
 		self.new_entry = False
 	
-	def set_new_entry(self):
+	def set_new_entry(self,*args):
 		self.new_entry = True
 	
 	def create_gui_elements(self,master):
@@ -57,7 +57,7 @@ class Setpoint:
 	def get_new_entry_value(self):
 		if self.new_entry:
 			self.new_entry = False
-			return self.actual_value.get()
+			return self.entry_value.get()
 		else:
 			return False
 			
@@ -77,8 +77,8 @@ class SetpointMonitor(Monitor):
 			except TypeError:
 				self.members[name].actual_value.set('NaN')
 	
-	def add_setpoint(self,setpoint_name,min_val,max_val,unit=''):
-		self.members[setpoint_name.lower()] = Setpoint(setpoint_name,min_val,max_val,unit)
+	def add_setpoint(self,setpoint_name,unit=''):
+		self.members[setpoint_name.lower()] = Setpoint(setpoint_name,unit)
 		self.query_items.append(setpoint_name.lower())
 		self.members[setpoint_name.lower()].create_gui_elements(self.monitor_frame)
 		self.members[setpoint_name.lower()].frame.pack()
