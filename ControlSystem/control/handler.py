@@ -1,6 +1,9 @@
 
 import numpy as np
 import logging
+import threading
+import quene
+import time
 
 from ..hardware import device
 from ..hardware import handler
@@ -39,7 +42,30 @@ class PlasmaHandler:
 		#self.power_supplies = {'heater':None,'discharge':tdk,
 		#	'solenoid':None,'vacuum':None}
 		#self.interlock_devices = {'water':None}
+		
+		#create update thread
+		update_thread = DeviceUpdate(1,'power supply update',self.power_supplies)
+		update_thread.start()
+		
+
+class DeviceUpdate(threading.Thread):
+	def __init__(self,threadID,name,devices):
+		threading.Thread.__init__(self)
+		self.threadID = threadID
+		self.name = threadID
+		
+		self.devices = devices
 	
+	def run(self):
+		logging.debug('Thread {} starting'.format(self.name))
+		while True:
+			for device_name,device in self.devices.items():
+				logging.debug(self.get_device_data(device))
+			time.sleep(1.0)
+		logging.debug('Thread {} ending'.format(self.name))
+	
+	def get_device_data(self,device):
+		return {'current': device.get('current'),'voltage':device.get('voltage')}
 	
 	def update_monitor_panel(self,monitor_panel_object):
 		"""Handle updating the monitor panel values for display
@@ -97,3 +123,4 @@ class PlasmaHandler:
 	def close(self):
 		for name,item in self.power_supplies.items():
 			item.clean()
+

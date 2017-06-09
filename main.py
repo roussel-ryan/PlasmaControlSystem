@@ -1,6 +1,8 @@
 
 import logging
 import time
+import threading
+import quene
 
 import numpy as np
 import tkinter as ttk
