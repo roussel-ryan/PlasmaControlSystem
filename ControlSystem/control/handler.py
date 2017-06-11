@@ -76,6 +76,9 @@ class PlasmaHandler:
 			
 			except queue.Empty:
 				pass
+			
+			self.queue.tasks_done()
+		self.queue.join()
 	
 	def add_panel(self,panel):
 		self.panels.append(panel)

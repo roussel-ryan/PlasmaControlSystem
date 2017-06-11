@@ -68,6 +68,7 @@ class App:
 			to info to suppress pyvisa debug messages which slow program
 		"""
 		logging.info(self.plasma_handler.queue.get())
+		self.plasma_handler.queue.tasks_done()
 		# if self.update_count % 100:
 			# t0 = time.time()
 		
