@@ -42,8 +42,8 @@ class PlasmaHandler:
 		"""
 		tdk_bank_handler = handler.VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
 		
-		tdk = device.TDKPowerSupply('discharge_pwr',tdk_bank_handler) 
-		tdk2 = device.TDKPowerSupply('heater_pwr',tdk_bank_handler,1)
+		tdk = device.TDKPowerSupply('discharge',tdk_bank_handler) 
+		tdk2 = device.TDKPowerSupply('heater',tdk_bank_handler,1)
 		tdk.unlock()
 		tdk2.unlock()
 		self.devices = {'discharge':tdk,'heater':tdk2}
@@ -53,7 +53,9 @@ class PlasmaHandler:
 		self.queue = queue	
 		
 	def process_queue(self):
+		logging.info('processing queue with length {}'.format(self.queue.qsize()))
 		while self.queue.qsize():
+			logging.debug('Looping thru queue')
 			try:
 				cmd = self.queue.get(0)
 				type = cmd['type']
@@ -63,22 +65,23 @@ class PlasmaHandler:
 				if type == 'get':
 					val = self.devices[device_name].get(attribute)
 					self.queue.put({'type':'return','device':device_name,'attribute':attribute,'value': val})
-				elif: type == 'set':
+				elif type == 'set':
 					self.devices[device_name].set(attribute,cmd['value'])
-				elif: type == 'return':
+				elif type == 'return':
+					#logging.info('Returning data to GUI {}'.format(cmd))
 					for panel in self.panels:
-						if monitor in panel.members:
-							monitor.update({attribute:cmd['value']})
+						#logging.info(panel.members)
+						panel.update({device_name:{attribute:cmd['value']}})
 				else:
 					logging.warning('Queue command of incorrect type')
-			except KeyError:
-				logging.warning('Key error')
+			except KeyError as e:
+				logging.warning(e.args[0])
 			
 			except queue.Empty:
 				pass
 			
-			self.queue.tasks_done()
-		self.queue.join()
+			self.queue.task_done()
+		#self.queue.join()
 	
 	def add_panel(self,panel):
 		self.panels.append(panel)
@@ -90,8 +93,8 @@ class PlasmaHandler:
 		self.monitor_panel_data = {}
 		for device_ID,device_obj in self.power_supplies.items():
 			if device_obj.status == device.ACTIVE:
-				self.queue.put({'type':'return','device':device_name,'attribute':'current')
-				self.queue.put({'type':'return','device':device_name,'attribute':'voltage')
+				self.queue.put({'type':'return','device_name':device_name,'attribute':'current','value':None})
+				self.queue.put({'type':'return','device_name':device_name,'attribute':'voltage','value':None})
 	
 	
 	def update_diagram_panel(self,diagram_panel_object):
@@ -115,7 +118,7 @@ class PlasmaHandler:
 		for device_name,item in inputs.items():
 			for param_name,param_value in item.items():
 				try:
-					self.power_supplies[device_name].set(param_name,param_value)
+					self.queue.put({'type':'set','device_name':device_name,'attribute':param_name,'value':param_value})
 				except KeyError:
 					logging.warning('Device {} does not exist'.format(device_name))
 	
@@ -141,7 +144,7 @@ class UpdateDevices(threading.Thread):
 			time.sleep(0.1)
 	
 	def get_device_data(self,device):
-		return [{'type':'return','device':device.name,'attribute':'current','value': device.get('current')},\
-			{'type':'return','device':device.name,'attribute':'voltage','value': device.get('voltage')}]
+		return [{'type':'return','device_name':device.name,'attribute':'current','value': device.get('current')},\
+			{'type':'return','device_name':device.name,'attribute':'voltage','value': device.get('voltage')}]
 	
 	

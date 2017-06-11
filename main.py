@@ -11,8 +11,8 @@ from ControlSystem.GUI import panel
 from ControlSystem.control import handler
 
 class App:
-	def __init__(self,master,plasma_handler):
-		self.plasma_handler = plasma_handler
+	def __init__(self,master,io_queue):
+		self.plasma_handler = handler.PlasmaHandler(io_queue)
 		
 		self.master_frame = ttk.Frame(master)
 		self.master_frame.pack()
@@ -42,7 +42,7 @@ class App:
 		self.plasma_handler.add_panel(button_panel)
 		
 		#define button functionality
-		#button_panel.members['Apply'].config(command = lambda: self.handler.send_user_inputs(self.monitor_panel))
+		button_panel.members['Apply'].config(command = lambda: self.plasma_handler.send_user_inputs(monitor_panel))
 		
 		
 		
@@ -67,8 +67,17 @@ class App:
 			does all the polling for current data,temporarily raises the logger level
 			to info to suppress pyvisa debug messages which slow program
 		"""
-		logging.info(self.plasma_handler.queue.get())
-		self.plasma_handler.queue.tasks_done()
+		
+		self.plasma_handler.process_queue()
+		
+		#try:
+		#	if self.plasma_handler.queue.qsize():
+		#		logging.info(self.plasma_handler.queue.get(0,2))
+		#		self.plasma_handler.queue.tasks_done()
+		#	else:
+		#		logging.debug('Queue empty')
+		#except:
+		#	logging.debug('Queuing error')
 		# if self.update_count % 100:
 			# t0 = time.time()
 		
@@ -91,11 +100,12 @@ def example():
 
 	root = ttk.Tk()
 	
-	plasma_handler = handler.PlasmaHandler(master_queue)
-	update_thread = handler.UpdateDevices('power supply',plasma_handler.power_supplies,master_queue)
+	
+	app = App(root,master_queue)
+	
+	update_thread = handler.UpdateDevices('power supply',app.plasma_handler.devices,master_queue)
 	update_thread.start()
 	
-	app = App(root,plasma_handler)
 	root.mainloop()
 	
 if __name__=='__main__':

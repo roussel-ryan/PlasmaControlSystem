@@ -20,12 +20,17 @@ class Panel:
 		logging.debug(self.query_items)
 		
 	def update(self,data={}):
+		"""
+			Updates gui monitors
+			Data needs to be in the form of {monitor_name:{attribute,value}}
+			members refers to each monitor
+		"""
 		for object_name,value_dict in data.items():
 			try:
 				if issubclass(type(self.members[object_name]),monitors.Monitor):
 					self.members[object_name].update(value_dict)
 			except KeyError:
-				logging.warning(object_name + ' monitor not found!')
+				pass
 					
 	
 		

@@ -36,7 +36,7 @@ class VISAHandler:
 				self.inst = self.rm.open_resource(self.address)
 				return True
 			except visa.VisaIOError as e:
-				logging.error(e.arg[0])
+				logging.error(e.args[0])
 				return False
 		else:
 			logging.error('No address specified')
@@ -53,7 +53,7 @@ class VISAHandler:
 			logging.error('Resource was not connected')
 			return False
 		except visa.VisaIOError as e:
-			logging.error(e.arg[0])
+			logging.error(e.args[0])
 			return False	
 	
 	def query(self,cmd):
@@ -89,5 +89,5 @@ class VISAHandler:
 			logging.error('Resource was not connected')
 			return False
 		except visa.VisaIOError as e:
-			logging.error(e.arg[0])
+			logging.error(e.args[0])
 			return False
