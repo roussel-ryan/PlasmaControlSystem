@@ -1,6 +1,7 @@
 import visa
 import logging
 import time
+import threading
 
 class VISAHandler:
 	"""
@@ -23,6 +24,7 @@ class VISAHandler:
 		self.rm = visa.ResourceManager()
 		self.address = address
 		self.connection_status = False
+		self.lock = threading.Lock()
 		
 		if RS485_enabled:
 			self.RS485_enabled = True
@@ -46,6 +48,7 @@ class VISAHandler:
 		logging.info(self.rm.list_resources())
 		
 	def write(self,cmd):
+		self.lock.acquire()
 		try:
 			self.inst.write(cmd)
 			return True
@@ -54,9 +57,12 @@ class VISAHandler:
 			return False
 		except visa.VisaIOError as e:
 			logging.error(e.args[0])
-			return False	
+			return False
+		finally:
+			self.lock.release()
 	
 	def query(self,cmd):
+		self.lock.acquire()
 		try:
 			return self.inst.query(cmd)
 		except AttributeError:
@@ -65,10 +71,13 @@ class VISAHandler:
 		except visa.VisaIOError as e:
 			logging.error(e.args[0])
 			return False
+		finally:
+			self.lock.release()
 	
 	def select_RS485_device(self,RS485_address):			
 		if self.RS485_enabled:
 			if not RS485_address == self.current_RS485_address:
+				#self.lock.acquire()
 				try:
 					self.write('INST:SEL {}'.format(RS485_address))
 					self.current_RS485_address = RS485_address
@@ -76,11 +85,15 @@ class VISAHandler:
 				except visa.VisaIOError as e:
 					logging.error(e.args[0])
 					return False
+				finally:
+					#self.lock.release()
+					pass
 			else:
 				True
 		else:
 			logging.warning('RS485 not enabled')
 			False
+			
 	def close(self):
 		try:
 			self.instrument.close()

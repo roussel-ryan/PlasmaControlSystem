@@ -61,6 +61,7 @@ class PlasmaHandler:
 				type = cmd['type']
 				device_name = cmd['device_name']
 				attribute = cmd['attribute']
+				logging.debug(cmd)
 				
 				if type == 'get':
 					val = self.devices[device_name].get(attribute)
@@ -139,9 +140,12 @@ class UpdateDevices(threading.Thread):
 		while True:
 			for device_name,device in self.devices.items():
 				return_data = self.get_device_data(device)
-				self.queue.put(return_data[0])
-				self.queue.put(return_data[1])
-			time.sleep(0.1)
+				try:
+					self.queue.put(return_data[0])
+					self.queue.put(return_data[1])
+				except:
+					logging.debug('Queue is busy')
+			time.sleep(2)
 	
 	def get_device_data(self,device):
 		return [{'type':'return','device_name':device.name,'attribute':'current','value': device.get('current')},\

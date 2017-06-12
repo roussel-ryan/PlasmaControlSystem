@@ -109,7 +109,7 @@ def example():
 	root.mainloop()
 	
 if __name__=='__main__':
-	logging.basicConfig(level=logging.INFO)
+	logging.basicConfig(level=logging.DEBUG)
 	#handler = handler.PlasmaHandler()
 	#handler.close()
 	example()
