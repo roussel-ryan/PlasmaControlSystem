@@ -6,10 +6,13 @@ from . import control_diagram
 from . import logging_to_tkinter
 
 class Panel:
-	def __init__(self,master):
+	def __init__(self,master,name):
+		self.name = name
 		self.frame = ttk.Frame(master)
 		self.members = {}
 		self.query_items = {}
+		
+		self.logger = logging.getLogger('gui')
 		
 	def gather_and_pack(self):
 		for name,item in self.members.items():
@@ -17,7 +20,7 @@ class Panel:
 			self.query_items[name.lower()] = []
 			for value in item.query_items:
 				self.query_items[item.name.lower()].append(value)
-		logging.debug(self.query_items)
+		self.logger.debug('Panel "{}" items: {}'.format(self.name,self.query_items))
 		
 	def update(self,data={}):
 		"""
@@ -36,7 +39,7 @@ class Panel:
 		
 class MonitorPanel(Panel):	
 	def __init__(self,master):
-		Panel.__init__(self,master)
+		Panel.__init__(self,master,'monitor_panel')
 		
 		self.heater_monitor = monitors.SetpointMonitor(self.frame,'Heater')
 		self.heater_monitor.add_setpoint('Current','A')
@@ -68,7 +71,7 @@ class MonitorPanel(Panel):
 
 class ControlPanel(Panel):
 	def __init__(self,master):
-		Panel.__init__(self,master)
+		Panel.__init__(self,master,'control_panel')
 		self.control = control_diagram.ControlDiagram(self.frame)
 		self.members['control_diagram'] = self.control
 		for name,item in self.members.items():
@@ -77,7 +80,7 @@ class ControlPanel(Panel):
 
 class InterlockPanel(Panel):
 	def __init__(self,master):
-		Panel.__init__(self,master)
+		Panel.__init__(self,master,'interlock_panel')
 		self.interlock = monitors.InterlockMonitor(self.frame,'Interlocks')
 		self.interlock.add_interlock('Water')
 		self.interlock.add_interlock('Low Vac')
@@ -88,7 +91,7 @@ class InterlockPanel(Panel):
 		
 class BottomButtons(Panel):
 	def __init__(self,master):
-		Panel.__init__(self,master)
+		Panel.__init__(self,master,'button_panel')
 		self.members['Save'] = ttk.Button(self.frame,text='Save',command=self.test)
 		self.members['Load'] = ttk.Button(self.frame,text='Load',command=self.test)
 		self.members['Apply'] = ttk.Button(self.frame,text='Apply Settings',command=self.test)
@@ -100,11 +103,9 @@ class BottomButtons(Panel):
 		
 class LogBox(Panel):
 	def __init__(self,master):
-		Panel.__init__(self,master)
+		Panel.__init__(self,master,'log_panel')
 		st = ttk.Listbox(self.frame,width=70)#,bg='black',fg='white',font=('Ariel',12,'bold'))
-		logging_handler = logging_to_tkinter.TextHandler(st)
-		logger = logging.getLogger()
-		logger.addHandler(logging_handler)
+		logger = logging.getLogger('gui_box')
 		st.pack()
 			
 			

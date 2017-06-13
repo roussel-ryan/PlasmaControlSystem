@@ -1,8 +1,10 @@
 
 import logging
+import logging.config
 import time
 import threading
 import queue
+import yaml
 
 import numpy as np
 import tkinter as ttk
@@ -12,6 +14,7 @@ from ControlSystem.control import handler
 
 class App:
 	def __init__(self,master,io_queue):
+		self.logger = logging.getLogger('main')
 		self.plasma_handler = handler.PlasmaHandler(io_queue)
 		
 		self.master_frame = ttk.Frame(master)
@@ -58,7 +61,6 @@ class App:
 		for child in self.master_frame.winfo_children(): child.grid_configure(padx=5,pady=5)
 		
 		self.update_count = 0
-		
 		self.update()
 		
 		
@@ -103,14 +105,22 @@ def example():
 	
 	app = App(root,master_queue)
 	
-	update_thread = handler.UpdateDevices('power supply',app.plasma_handler.devices,master_queue)
+	update_thread = handler.UpdateDevices('UpdateThread',app.plasma_handler.devices,master_queue)
 	update_thread.start()
 	
 	root.mainloop()
-	
+
+def load_logging_config():
+	with open("logging_config.yml", 'r') as stream:
+		try:
+			config = yaml.load(stream)
+		except yaml.YAMLError as exc:
+			print(exc)
+	logging.config.dictConfig(config)
+	PIL_logger = logging.getLogger('PIL')
+	PIL_logger.setLevel(logging.CRITICAL)
+
 if __name__=='__main__':
-	logging.basicConfig(level=logging.DEBUG)
-	#handler = handler.PlasmaHandler()
-	#handler.close()
+	load_logging_config()
 	example()
 

@@ -1,0 +1,40 @@
+version: 1
+formatters:
+  simple:
+    format: '%(relativeCreated)6d:%(levelname)s:%(name)s:%(threadName)s:%(message)s '
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  GUI:
+   (): 'ControlSystem.GUI.logging_to_tkinter.TextHandler'
+loggers:
+  main:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  plasma_handler:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  device:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  gui:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  visa_handler:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  update:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+root:
+  level: DEBUG
+  handlers: [console]

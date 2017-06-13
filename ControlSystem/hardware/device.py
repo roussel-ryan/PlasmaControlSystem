@@ -27,15 +27,18 @@ class Device:
 		
 		self.name = device_name
 		self.status = NO_COMM
+		self.logger = logging.getLogger('device')
+		
+		
 	def send_command(self,command,*args,**kwargs):
 		"""check current state of device and then 
 			if active pass the command on to the inherited send_command method
 		"""
 		if self.status == NO_COMM:
-			logging.error('No communication')
+			self.logger.error('No communication')
 			return None
 		elif self.status == LOCKED:
-			logging.error('Device locked, clear interlock before proceeding')
+			self.logger.error('Device "{}" locked, clear interlock before proceeding'.format(self.name))
 			return None
 		else:
 			return command(*args,**kwargs)
@@ -65,7 +68,7 @@ class TDKPowerSupply(Device):
 		self.handler.write('*CLS')
 		self.handler.select_RS485_device(self.RS485_address)
 		if self.handler.query('OUTP:STAT?') == 'OFF':
-			logging.info('Turning device on')
+			self.logger.info('Turning "{}" on'.format(self.name))
 			self.handler.write('OUTP:STAT ON')
 		self.check_errors()
 		
@@ -81,9 +84,9 @@ class TDKPowerSupply(Device):
 			self.check_errors('set {},{}'.format(name,value))
 			#time.sleep(1)
 		except visa.VisaIOError as e:
-			logging.error(e.args[0])
+			self.logger.error(e.args[0])
 		except KeyError:
-			logging.error('Incorrect set key for TDKPowerSupply object')
+			self.logger.error('Incorrect set key for TDKPowerSupply {}'.format(self.name))
 		
 	def get(self,name):
 		try:
@@ -91,9 +94,9 @@ class TDKPowerSupply(Device):
 			var = self.handler.query(self.get_commands[name])
 			self.check_errors('get '+name)
 		except visa.VisaIOError as e:
-			logging.error(e.args[0])
+			self.logger.error(e.args[0])
 		except KeyError:
-			logging.error('Incorrect get key for TDKPowerSupply object')
+			self.logger.error('Incorrect get key for TDKPowerSupply {}'.format(self.name))
 			var = None
 			
 		try:
@@ -110,13 +113,13 @@ class TDKPowerSupply(Device):
 			
 		if float(error_description[0]) < 0 :
 			#error
-			logging.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self.name + ' with cmd ' + cmd)
+			self.logger.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self.name + ' with cmd ' + cmd)
 		elif float(error_description[0]) > 0:
 			#warning
-			logging.warning(error_description[1] + ' in ' + self.name)
+			self.logger.warning(error_description[1] + ' in ' + self.name)
 		else:
 			#no error
-			logging.debug('No error')
+			pass
 		
 		
 if __name__=='__main__':

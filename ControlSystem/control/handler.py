@@ -40,7 +40,10 @@ class PlasmaHandler:
 			send initialization data to GUI
 			
 		"""
-		tdk_bank_handler = handler.VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+		self.name = 'PlasmaHandler'
+		self.logger = logging.getLogger('plasma_handler')
+		
+		tdk_bank_handler = handler.VISAHandler('TDKPowerSupplies','TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
 		
 		tdk = device.TDKPowerSupply('discharge',tdk_bank_handler) 
 		tdk2 = device.TDKPowerSupply('heater',tdk_bank_handler,1)
@@ -53,15 +56,15 @@ class PlasmaHandler:
 		self.queue = queue	
 		
 	def process_queue(self):
-		logging.info('processing queue with length {}'.format(self.queue.qsize()))
+		self.logger.info('processing queue with length {}'.format(self.queue.qsize()))
 		while self.queue.qsize():
-			logging.debug('Looping thru queue')
+			self.logger.debug('Looping thru queue')
 			try:
 				cmd = self.queue.get(0)
 				type = cmd['type']
 				device_name = cmd['device_name']
 				attribute = cmd['attribute']
-				logging.debug(cmd)
+				self.logger.debug(cmd)
 				
 				if type == 'get':
 					val = self.devices[device_name].get(attribute)
@@ -74,14 +77,15 @@ class PlasmaHandler:
 						#logging.info(panel.members)
 						panel.update({device_name:{attribute:cmd['value']}})
 				else:
-					logging.warning('Queue command of incorrect type')
+					self.logger.warning('Queue command {} of incorrect type'.format(type))
 			except KeyError as e:
-				logging.warning(e.args[0])
+				self.logger.warning(e.args[0])
 			
 			except queue.Empty:
 				pass
-			
+			self.logger.info('Done processing queue')
 			self.queue.task_done()
+		
 		#self.queue.join()
 	
 	def add_panel(self,panel):
@@ -121,7 +125,7 @@ class PlasmaHandler:
 				try:
 					self.queue.put({'type':'set','device_name':device_name,'attribute':param_name,'value':param_value})
 				except KeyError:
-					logging.warning('Device {} does not exist'.format(device_name))
+					self.logger.warning('Device {} does not exist'.format(device_name))
 	
 	def close(self):
 		for name,item in self.power_supplies.items():
@@ -130,10 +134,9 @@ class PlasmaHandler:
 
 class UpdateDevices(threading.Thread):
 	def __init__(self,name,devices,queue):
-		threading.Thread.__init__(self)
+		threading.Thread.__init__(self,name=name)
 		self.queue = queue
-		self.name = name
-		
+		self.logger = logging.getLogger('update')
 		self.devices = devices
 	
 	def run(self):
@@ -144,7 +147,7 @@ class UpdateDevices(threading.Thread):
 					self.queue.put(return_data[0])
 					self.queue.put(return_data[1])
 				except:
-					logging.debug('Queue is busy')
+					self.logger.debug('Queue is busy')
 			time.sleep(2)
 	
 	def get_device_data(self,device):

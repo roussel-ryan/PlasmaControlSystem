@@ -20,7 +20,11 @@ class VISAHandler:
 			close() - close resource
 	"""
 	
-	def __init__(self,address='',RS485_enabled=False):
+	def __init__(self,name,address='',RS485_enabled=False):
+		
+		self.name = name
+		self.logger = logging.getLogger('visa_handler')
+		
 		self.rm = visa.ResourceManager()
 		self.address = address
 		self.connection_status = False
@@ -38,14 +42,14 @@ class VISAHandler:
 				self.inst = self.rm.open_resource(self.address)
 				return True
 			except visa.VisaIOError as e:
-				logging.error(e.args[0])
+				self.logger.error(e.args[0])
 				return False
 		else:
-			logging.error('No address specified')
+			self.logger.error('Connection failed: No address specified')
 			return False
 	
 	def list_resources(self):
-		logging.info(self.rm.list_resources())
+		self.logger.info(self.rm.list_resources())
 		
 	def write(self,cmd):
 		self.lock.acquire()
@@ -53,10 +57,10 @@ class VISAHandler:
 			self.inst.write(cmd)
 			return True
 		except AttributeError:
-			logging.error('Resource was not connected')
+			self.logger.error('Write command failed, resource was not found.')
 			return False
 		except visa.VisaIOError as e:
-			logging.error(e.args[0])
+			self.logger.error(e.args[0])
 			return False
 		finally:
 			self.lock.release()
@@ -66,10 +70,10 @@ class VISAHandler:
 		try:
 			return self.inst.query(cmd)
 		except AttributeError:
-			logging.error('Resource was not connected')
+			self.logger.error('Query command failed, resource was not found.')
 			return False
 		except visa.VisaIOError as e:
-			logging.error(e.args[0])
+			self.logger.error(e.args[0])
 			return False
 		finally:
 			self.lock.release()
@@ -83,7 +87,7 @@ class VISAHandler:
 					self.current_RS485_address = RS485_address
 					return True
 				except visa.VisaIOError as e:
-					logging.error(e.args[0])
+					self.logger.error(e.args[0])
 					return False
 				finally:
 					#self.lock.release()
@@ -91,7 +95,7 @@ class VISAHandler:
 			else:
 				True
 		else:
-			logging.warning('RS485 not enabled')
+			self.logger.warning('Selection not possible: RS485 not enabled')
 			False
 			
 	def close(self):
@@ -99,8 +103,8 @@ class VISAHandler:
 			self.instrument.close()
 			return True
 		except AttributeError:
-			logging.error('Resource was not connected')
+			self.logger.error('Close operation failed, no device to close')
 			return False
 		except visa.VisaIOError as e:
-			logging.error(e.args[0])
+			self.logger.error(e.args[0])
 			return False

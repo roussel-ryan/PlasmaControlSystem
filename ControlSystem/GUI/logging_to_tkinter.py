@@ -6,11 +6,11 @@ import tkinter as ttk
 
 class TextHandler(logging.Handler):
     """This class allows you to log to a Tkinter Text or ScrolledText widget"""
-    def __init__(self, text):
+    def __init__(self, *args):
         # run the regular Handler __init__
         logging.Handler.__init__(self)
         # Store a reference to the Text it will log to
-        self.text = text
+        self.text = args
         self.level_colors={'debug':'green','info':'white','warning':'yellow','error':'red','critical':'orange'}
 		
         self.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))

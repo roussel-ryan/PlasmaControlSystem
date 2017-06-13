@@ -16,6 +16,8 @@ class Monitor:
 		self.monitor_frame = ttk.LabelFrame(self.master,text=self.name)
 		self.members = {}
 		self.query_items = []
+		
+		self.logger = logging.getLogger('gui')
 
 class Setpoint:
 	""" class to keep track of setpoint and actual value"""
@@ -104,6 +106,8 @@ class Interlock:
 	def __init__(self,name):
 		self.name = name
 		self.status = False
+		
+		self.logger = logging.getLogger('gui')
 		
 	def create_gui_elements(self,master):
 		self.frame = ttk.Frame(master)
