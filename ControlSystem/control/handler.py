@@ -83,9 +83,8 @@ class PlasmaHandler:
 			
 			except queue.Empty:
 				pass
-			self.logger.info('Done processing queue')
 			self.queue.task_done()
-		
+		self.logger.info('Done processing queue')
 		#self.queue.join()
 	
 	def add_panel(self,panel):

@@ -15,6 +15,9 @@ from ControlSystem.control import handler
 class App:
 	def __init__(self,master,io_queue):
 		self.logger = logging.getLogger('main')
+		
+		self.logger.info('Starting intialization process')
+		
 		self.plasma_handler = handler.PlasmaHandler(io_queue)
 		
 		self.master_frame = ttk.Frame(master)

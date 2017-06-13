@@ -77,6 +77,11 @@ class ControlPanel(Panel):
 		for name,item in self.members.items():
 			item.control_frame.pack()
 		
+	def update(self,data={}):
+		"""
+			overwriting panel update function to just call the control diagram update function
+		"""
+		self.control.update(data)
 
 class InterlockPanel(Panel):
 	def __init__(self,master):
