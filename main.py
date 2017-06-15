@@ -113,6 +113,14 @@ def example():
 	
 	root.mainloop()
 
+def set_global_logging_level(level):
+	for name,logger in logging.Logger.manager.loggerDict.items():
+		try:
+			logger.setLevel(level)
+		except:
+			pass
+		#print(' '.join((name,str(logger))))
+	
 def load_logging_config():
 	with open("logging_config.yml", 'r') as stream:
 		try:
@@ -120,6 +128,8 @@ def load_logging_config():
 		except yaml.YAMLError as exc:
 			print(exc)
 	logging.config.dictConfig(config)
+	set_global_logging_level(logging.INFO)
+	
 	PIL_logger = logging.getLogger('PIL')
 	PIL_logger.setLevel(logging.CRITICAL)
 

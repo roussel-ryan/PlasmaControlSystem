@@ -34,7 +34,11 @@ class VISAHandler:
 			self.RS485_enabled = True
 			self.current_RS485_address = ''
 		
+		self.logger.info('Connecting to VISA device at {}'.format(address))
 		self.connection_status = self.connect()
+		if not self.connection_status:
+			pass
+			#raise RuntimeError('Connection to VISA failed')
 		
 	def connect(self):
 		if not self.address == '':

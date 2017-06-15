@@ -42,8 +42,13 @@ class PlasmaHandler:
 		"""
 		self.name = 'PlasmaHandler'
 		self.logger = logging.getLogger('plasma_handler')
+		self.logger.info('Initializating Plasma Handler')
 		
-		tdk_bank_handler = handler.VISAHandler('TDKPowerSupplies','TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+		self.logger.info('Connecting to devices')
+		try:
+			tdk_bank_handler = handler.VISAHandler('TDKPowerSupplies','TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+		except RuntimeError as e:
+			self.logger.error(e)
 		
 		tdk = device.TDKPowerSupply('discharge',tdk_bank_handler) 
 		tdk2 = device.TDKPowerSupply('heater',tdk_bank_handler,1)
@@ -136,6 +141,8 @@ class UpdateDevices(threading.Thread):
 		threading.Thread.__init__(self,name=name)
 		self.queue = queue
 		self.logger = logging.getLogger('update')
+		self.logger.info('Starting update thread')
+		
 		self.devices = devices
 	
 	def run(self):

@@ -111,6 +111,7 @@ class LogBox(Panel):
 		Panel.__init__(self,master,'log_panel')
 		st = ttk.Listbox(self.frame,width=70)#,bg='black',fg='white',font=('Ariel',12,'bold'))
 		logger = logging.getLogger('gui_box')
+		logger.info(st)
 		st.pack()
 			
 			
