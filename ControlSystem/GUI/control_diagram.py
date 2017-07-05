@@ -26,6 +26,8 @@ class ControlDiagram:
 		self.control_frame =  ttk.Frame(master)
 		self.size = {'width':800,'height':654}
 		
+		self.logger = logging.getLogger('GUI')
+		
 		self.canvas = ttk.Canvas(self.control_frame,**self.size)
 		
 		package_path = '/'.join(os.path.dirname(__file__).split('\\')[:-1])
@@ -69,7 +71,7 @@ class ControlDiagram:
 			except KeyError:
 				self.query_items[item[0].split('_')[0]] = [item[0].split('_')[1]]
 				
-		logging.debug(self.query_items)
+		self.logger.debug(self.query_items)
 
 	def update(self,data={}):
 		for name,item in data.items():
