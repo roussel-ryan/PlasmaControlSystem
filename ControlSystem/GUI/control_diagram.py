@@ -77,7 +77,7 @@ class ControlDiagram:
 		for name,item in data.items():
 			for item_name,value in item.items():
 				full_name = '_'.join([name,item_name])
-				self.display_data[full_name].set('{:3.2f}'.format(value))
+				self.display_data[full_name].set('{:3.2f}'.format(value) if value is not None else '----')
 
 	def change_diagram(self,new_diagram):
 		self.canvas.delete(self.canvas.find_all()[0])

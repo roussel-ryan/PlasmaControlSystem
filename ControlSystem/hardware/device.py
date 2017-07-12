@@ -24,11 +24,7 @@ class Device(object):
 		def wrapper(self, *args, **kwargs):
 			if self._state == 'ok':
 				return method(self, *args, **kwargs)
-			elif self._state == 'error':
-				self._logger.error('in error state')
-				return None
-			elif self._state == 'locked':
-				self._logger.error('locked, unlock before proceeding')
+			elif self._state == 'error' or self._state == 'locked':
 				return None
 			else:
 				assert False

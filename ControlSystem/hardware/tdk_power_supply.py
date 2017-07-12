@@ -10,7 +10,7 @@ class TDKPowerSupply(device.Device):
 		self._connection.write('*CLS')
 		self._connection.select_RS485_device(self._RS485_address)
 		if self._connection.query('OUTP:STAT?') == 'OFF':
-			self._logger.info('Turning "{}" on'.format(self._name))
+			self._logger.info('Turning "{}" on'.format(self.name))
 			self._connection.write('OUTP:STAT ON')
 		self.set('voltage',0.0)
 		self.set('current',0.0)
