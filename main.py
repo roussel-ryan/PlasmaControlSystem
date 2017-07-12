@@ -6,7 +6,6 @@ import threading
 import queue
 import yaml
 
-import numpy as np
 import tkinter as ttk
 
 from ControlSystem.GUI import panel
