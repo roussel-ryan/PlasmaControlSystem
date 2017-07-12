@@ -1,3 +1,65 @@
+from . import device
+
+
+class TDKPowerSupply(device.Device):
+
+	def __init__(self, name, visa_connection, RS485_address = 6):
+		super().__init__(name)
+		self._RS485_address = RS485_address
+		self._connection = visa_connection
+		self._connection.write('*CLS')
+		self._connection.select_RS485_device(self._RS485_address)
+		if self._connection.query('OUTP:STAT?') == 'OFF':
+			self._logger.info('Turning "{}" on'.format(self._name))
+			self._connection.write('OUTP:STAT ON')
+		self.set('voltage',0.0)
+		self.set('current',0.0)
+
+	@device.Device.first_check_state
+	def set(self, name, value):
+		if name != 'current' and name != 'voltage':
+			assert False
+		self._connection.select_RS485_device(self._RS485_address)
+		if name == 'voltage':
+			self._connection.write(':VOLT {:3.2f}'.format(value))
+		elif name == 'current':
+			self._connection.write(':CURR {:3.2f}'.format(value))
+		self.check_errors()
+
+	@device.Device.first_check_state
+	def get(self, name):
+		if name != 'current' and name != 'voltage':
+			assert False
+		self._connection.select_RS485_device(self._RS485_address)
+		if name == 'voltage':
+			value = self._connection.query('MEAS:VOLT?')
+		elif name == 'current':
+			value = self._connection.query('MEAS:CURR?')
+		self.check_errors()
+		return None if self._state != 'ok' else float(value)
+
+	@device.Device.first_check_state
+	def check_errors(self):
+		# check for device errors
+		error_description = self._connection.query('SYST:ERR?')
+		if error_description is not None:
+			error_description = error_description.split(',')
+			if float(error_description[0]) < 0:
+				self._logger.error('code: {}'.format(error_description[0]))
+				self.set_error()
+				return
+			if float(error_description[0]) > 0:
+				self._logger.warning(error_description[1])
+				self.set_error()
+				return
+		if not self._connection.is_ok():
+			self.set_error()
+
+
+
+'''
+
+
 import serial
 import visa
 import logging
@@ -85,3 +147,4 @@ if __name__=='__main__':
 	tdk.set('voltage',5.0)
 	print(tdk.get('voltage'))
 	tdk.clean()
+'''

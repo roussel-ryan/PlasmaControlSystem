@@ -4,9 +4,9 @@ import logging
 class Device(object):
 
 	def __init__(self, name):
-		self._name = name
+		self.name = name
 		self._state = 'ok'
-		self._logger = logging.getLogger('[Device "{}"]'.format(self._name))
+		self._logger = logging.getLogger('[Device "{}"]'.format(self.name))
 
 	def lock(self):
 		if self._state == 'ok':
@@ -24,7 +24,7 @@ class Device(object):
 		def wrapper(self, *args, **kwargs):
 			if self._state == 'ok':
 				return method(self, *args, **kwargs)
-			elif self._state == 'locked':
+			elif self._state == 'error':
 				self._logger.error('in error state')
 				return None
 			elif self._state == 'locked':

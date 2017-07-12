@@ -48,7 +48,7 @@ class VisaConnection(object):
                 self._RS485_address = RS485_address if self._state else None
 
     def is_ok(self):
-        return not self._state
+        return self._state
 
     @classmethod
     def list_resources(self):
