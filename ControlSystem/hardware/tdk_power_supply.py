@@ -3,24 +3,24 @@ import visa
 import logging
 import time
 from serial import serialutil
-from . import handler
+from . import visa_connection
 from . import device
 
 
 class TDKPowerSupply(device.Device):
-	def __init__(self, name, visa_handler, RS485_address = 6):
+	def __init__(self, name, visa_connection, RS485_address = 6):
 		super().__init__(name)
 		self.set_commands = {'voltage':':VOLT {:3.2f}','current':':CURR {:3.2f}'}
 		self.get_commands = {'voltage':'MEAS:VOLT?','current':'MEAS:CURR?'}
 		self.RS485_address = RS485_address
-		self.handler = visa_handler
+		self._connection = visa_connection
 
 		#clear errors
-		self.handler.write('*CLS')
-		self.handler.select_RS485_device(self.RS485_address)
-		if self.handler.query('OUTP:STAT?') == 'OFF':
-			self.logger.info('Turning "{}" on'.format(self._name))
-			self.handler.write('OUTP:STAT ON')
+		self._connection.write('*CLS')
+		self._connection.select_RS485_device(self.RS485_address)
+		if self._connection.query('OUTP:STAT?') == 'OFF':
+			self._logger.info('Turning "{}" on'.format(self._name))
+			self._connection.write('OUTP:STAT ON')
 		self.check_errors()
 
 
@@ -31,25 +31,25 @@ class TDKPowerSupply(device.Device):
 	@device.Device.first_check_state
 	def set(self,name,value):
 		try:
-			self.handler.select_RS485_device(self.RS485_address)
-			self.handler.write(self.set_commands[name].format(value))
+			self._connection.select_RS485_device(self.RS485_address)
+			self._connection.write(self.set_commands[name].format(value))
 			self.check_errors('set {},{}'.format(name,value))
 			#time.sleep(1)
 		except visa.VisaIOError as e:
-			self.logger.error(e.args[0])
+			self._logger.error(e.args[0])
 		except KeyError:
-			self.logger.error('Incorrect set key for TDKPowerSupply {}'.format(self._name))
+			self._logger.error('Incorrect set key for TDKPowerSupply {}'.format(self._name))
 
 	@device.Device.first_check_state
 	def get(self,name):
 		try:
-			self.handler.select_RS485_device(self.RS485_address)
-			var = self.handler.query(self.get_commands[name])
+			self._connection.select_RS485_device(self.RS485_address)
+			var = self._connection.query(self.get_commands[name])
 			self.check_errors('get '+name)
 		except visa.VisaIOError as e:
-			self.logger.error(e.args[0])
+			self._logger.error(e.args[0])
 		except KeyError:
-			self.logger.error('Incorrect get key for TDKPowerSupply {}'.format(self._name))
+			self._logger.error('Incorrect get key for TDKPowerSupply {}'.format(self._name))
 			var = None
 
 		try:
@@ -60,7 +60,7 @@ class TDKPowerSupply(device.Device):
 
 	def check_errors(self,cmd='UNKNOWN'):
 		if self._state == 'ok':
-			error_description = self.handler.query('SYST:ERR?')
+			error_description = self._connection.query('SYST:ERR?')
 			if not isinstance(error_description, bool):
 			 	error_description = error_description.split(',')
 		else:
@@ -68,10 +68,10 @@ class TDKPowerSupply(device.Device):
 
 		if float(error_description[0]) < 0 :
 			#error
-			self.logger.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self._name + ' with cmd ' + cmd)
+			self._logger.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self._name + ' with cmd ' + cmd)
 		elif float(error_description[0]) > 0:
 			#warning
-			self.logger.warning(error_description[1] + ' in ' + self._name)
+			self._logger.warning(error_description[1] + ' in ' + self._name)
 		else:
 			#no error
 			pass

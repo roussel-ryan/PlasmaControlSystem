@@ -5,7 +5,7 @@ import queue
 import time
 
 from ..hardware import device
-from ..hardware import handler
+from ..hardware import visa_connection
 from ..hardware import tdk_power_supply
 
 
@@ -45,13 +45,10 @@ class PlasmaHandler:
 		self.logger.info('Initializating Plasma Handler')
 
 		self.logger.info('Connecting to devices')
-		try:
-			tdk_bank_handler = handler.VISAHandler('TDKPowerSupplies','TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
-		except RuntimeError as e:
-			self.logger.error(e)
+		tdk_bank = visa_connection.VisaConnection('TDKPowerSupplies','TCPIP0::169.254.223.84::inst0::INSTR',True)
 
-		tdk = tdk_power_supply.TDKPowerSupply('discharge',tdk_bank_handler)
-		tdk2 = tdk_power_supply.TDKPowerSupply('heater',tdk_bank_handler,1)
+		tdk = tdk_power_supply.TDKPowerSupply('discharge',tdk_bank)
+		tdk2 = tdk_power_supply.TDKPowerSupply('heater',tdk_bank,1)
 		tdk.unlock()
 		tdk2.unlock()
 		self.devices = {'discharge':tdk,'heater':tdk2}
