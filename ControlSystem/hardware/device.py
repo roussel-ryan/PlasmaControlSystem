@@ -1,52 +1,35 @@
-
-import serial
-import visa
 import logging
-import time
-from serial import serialutil
-
-from . import handler
-
-NO_COMM = 0
-LOCKED = 1
-ACTIVE = 2
-
-class Device:
-	def __init__(self,device_name):
-		"""Device super class
-			Device(device_name)
-			Attributes:
-				- device_name = name of device
-				- device_state = current state of device
-					-States are as follows
-						- 0 NO_COMM = currently not communicating
-						- 1 LOCKED = communicating but currently interlocked
-						- 2 ACTIVE = communicating and not interlocked
-					- States are numbered s.t. ACTIVE state can do everything, similar to logging
-		"""
-
-		self.name = device_name
-		self.status = NO_COMM
-		self.logger = logging.getLogger('device')
 
 
-	def send_command(self,command,*args,**kwargs):
-		"""check current state of device and then
-			if active pass the command on to the inherited send_command method
-		"""
-		if self.status == NO_COMM:
-			self.logger.error('No communication')
-			return None
-		elif self.status == LOCKED:
-			self.logger.error('Device "{}" locked, clear interlock before proceeding'.format(self.name))
-			return None
-		else:
-			return command(*args,**kwargs)
+class Device(object):
 
-	def unlock(self):
-		if self.status > NO_COMM:
-			self.status = ACTIVE
+	def __init__(self, name):
+		self._name = name
+		self._state = 'ok'
+		self._logger = logging.getLogger('[Device "{}"]'.format(self._name))
 
 	def lock(self):
-		if self.status > NO_COMM:
-			self.status = LOCKED
+		if self._state == 'ok':
+			self._state = 'locked'
+
+	def unlock(self):
+		if self._state == 'locked':
+			self._state = 'ok'
+
+	def set_error(self):
+		self._state = 'error'
+
+	@staticmethod
+	def first_check_state(method):
+		def wrapper(self, *args, **kwargs):
+			if self._state == 'ok':
+				return method(self, *args, **kwargs)
+			elif self._state == 'locked':
+				self._logger.error('in error state')
+				return None
+			elif self._state == 'locked':
+				self._logger.error('locked, unlock before proceeding')
+				return None
+			else:
+				assert False
+		return wrapper
