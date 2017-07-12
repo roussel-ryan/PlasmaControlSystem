@@ -6,6 +6,7 @@ import time
 
 from ..hardware import device
 from ..hardware import handler
+from ..hardware import tdk_power_supply
 
 
 
@@ -49,8 +50,8 @@ class PlasmaHandler:
 		except RuntimeError as e:
 			self.logger.error(e)
 
-		tdk = device.TDKPowerSupply('discharge',tdk_bank_handler)
-		tdk2 = device.TDKPowerSupply('heater',tdk_bank_handler,1)
+		tdk = tdk_power_supply.TDKPowerSupply('discharge',tdk_bank_handler)
+		tdk2 = tdk_power_supply.TDKPowerSupply('heater',tdk_bank_handler,1)
 		tdk.unlock()
 		tdk2.unlock()
 		self.devices = {'discharge':tdk,'heater':tdk2}
