@@ -12,9 +12,9 @@ class TextHandler(logging.Handler):
         # Store a reference to the Text it will log to
         self.text = args
         self.level_colors={'debug':'green','info':'white','warning':'yellow','error':'red','critical':'orange'}
-		
+
         self.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-		
+
     def emit(self, record):
         msg = self.format(record)
         def append():
@@ -32,7 +32,7 @@ class TextHandler(logging.Handler):
 if __name__ == '__main__':
     # Create the GUI
     root = ttk.Tk()
-    
+
     st = ttk.Listbox(root)
     st.pack()
 

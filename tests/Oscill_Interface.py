@@ -3,26 +3,26 @@ import visa, numpy as np, matplotlib
 from struct import unpack
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure 
-from matplotlib import style 
+from matplotlib.figure import Figure
+from matplotlib import style
 style.use('ggplot')
 import matplotlib.patches as patch
-import pandas as pd 
+import pandas as pd
 from time import *
 
 scope=visa.ResourceManager()
 scope=scope.open_resource('USB::0x0699::0x0408::C031986::INSTR')
-scope.write('DATA:SOU CH1')  
-scope.write('DATA:WIDTH 1') 
-scope.write('DATA:ENC RPB')  
-ymult1=float(scope.ask('WFMPRE:YMULT?')) 
+scope.write('DATA:SOU CH1')
+scope.write('DATA:WIDTH 1')
+scope.write('DATA:ENC RPB')
+ymult1=float(scope.ask('WFMPRE:YMULT?'))
 yzero1=float(scope.ask('WFMPRE:YZERO?'))
 yoff1=float(scope.ask('WFMPRE:YOFF?'))
 
-def read_instrument(): 
-	scope.write('DATA:SOU CH1') 
-	scope.write('DATA:WIDTH 1') 
-	scope.write('DATA:ENC RPB') 
+def read_instrument():
+	scope.write('DATA:SOU CH1')
+	scope.write('DATA:WIDTH 1')
+	scope.write('DATA:ENC RPB')
 	xincr1=float(scope.ask('WFMPRE:XINCR?'))
 	scope.write('CURVE?')
 	data1=scope.read_raw()
@@ -64,11 +64,11 @@ firstguy=patch.Patch(color='red',label='Channel One')
 secondguy=patch.Patch(color='blue',label='Channel Two')
 ax.legend(handles=[firstguy,secondguy])
 
-def get_max(): 
+def get_max():
 	t,v1, v2=read_instrument()
 	return np.amax(v1),np.amax(v2)
 
-def get_min(): 
+def get_min():
 	t,v1,v2=read_instrument()
 	return np.amin(v1),np.amin(v2)
 
@@ -82,14 +82,14 @@ def update_min():
 	minimum['text']='Ch1 Min Value: %s \n Ch2 Min Value: %s' % (minval1,minval2)
 	root.after(20,update_min)
 
-def exit_guy(): 
+def exit_guy():
 	quit()
 
-def get_filename(): 
+def get_filename():
 	name=entrylabel.get()
 	return name
 
-def save_data(): 
+def save_data():
 	dtpoints=ax[0].get_data()
 	t=dtpoints[0]
 	v1=dtpoints[1]
@@ -104,14 +104,14 @@ def update_graph():
 	ax.plot(t,v1,'r',t,v2,'b')
 	ax.set_ylim(-11,11)
 	extrema=[np.amin(v1),np.amin(v2),np.amax(v1),np.amax(v2)]
-	if max(extrema)>10 or min(extrema)<-10: 
+	if max(extrema)>10 or min(extrema)<-10:
 		ax.set_ylim(min(extrema)-2,max(extrema)+2)
 	tmin,tmax=np.amin(t),np.amax(t)
 	ax.set_xlim(tmin,tmax)
 	canvas.show()
 	root.after(1,update_graph)
 
-def pause_collection(): 
+def pause_collection():
 	return None
 
 root=Tk()

@@ -24,14 +24,14 @@ class Device:
 						- 2 ACTIVE = communicating and not interlocked
 					- States are numbered s.t. ACTIVE state can do everything, similar to logging
 		"""
-		
+
 		self.name = device_name
 		self.status = NO_COMM
 		self.logger = logging.getLogger('device')
-		
-		
+
+
 	def send_command(self,command,*args,**kwargs):
-		"""check current state of device and then 
+		"""check current state of device and then
 			if active pass the command on to the inherited send_command method
 		"""
 		if self.status == NO_COMM:
@@ -42,15 +42,15 @@ class Device:
 			return None
 		else:
 			return command(*args,**kwargs)
-	
+
 	def unlock(self):
 		if self.status > NO_COMM:
 			self.status = ACTIVE
-	
+
 	def lock(self):
 		if self.status > NO_COMM:
 			self.status = LOCKED
-					
+
 class TDKPowerSupply(Device):
 	def __init__(self,device_name,visa_handler,RS485_address = 6):
 		Device.__init__(self,device_name)
@@ -58,12 +58,12 @@ class TDKPowerSupply(Device):
 		self.get_commands = {'voltage':'MEAS:VOLT?','current':'MEAS:CURR?'}
 		self.RS485_address = RS485_address
 		self.handler = visa_handler
-		
+
 		if self.handler.connection_status:
 			self.status = LOCKED
-		
+
 		self.unlock()
-		
+
 		#clear errors
 		self.handler.write('*CLS')
 		self.handler.select_RS485_device(self.RS485_address)
@@ -71,12 +71,12 @@ class TDKPowerSupply(Device):
 			self.logger.info('Turning "{}" on'.format(self.name))
 			self.handler.write('OUTP:STAT ON')
 		self.check_errors()
-		
-		
-		
+
+
+
 		self.set('voltage',0.0)
 		self.set('current',0.0)
-		
+
 	def set(self,name,value):
 		try:
 			self.handler.select_RS485_device(self.RS485_address)
@@ -87,7 +87,7 @@ class TDKPowerSupply(Device):
 			self.logger.error(e.args[0])
 		except KeyError:
 			self.logger.error('Incorrect set key for TDKPowerSupply {}'.format(self.name))
-		
+
 	def get(self,name):
 		try:
 			self.handler.select_RS485_device(self.RS485_address)
@@ -98,19 +98,19 @@ class TDKPowerSupply(Device):
 		except KeyError:
 			self.logger.error('Incorrect get key for TDKPowerSupply {}'.format(self.name))
 			var = None
-			
+
 		try:
 			nVar = float(var)
 		except TypeError:
 			nVar = var
 		return nVar
-	
+
 	def check_errors(self,cmd='UNKNOWN'):
 		if self.status == ACTIVE:
 			error_description = self.send_command(self.handler.query,'SYST:ERR?').split(',')
 		else:
 			error_description = ['0']
-			
+
 		if float(error_description[0]) < 0 :
 			#error
 			self.logger.error('code:' + error_description[0] + ' ' +error_description[1] + ' in ' + self.name + ' with cmd ' + cmd)
@@ -120,8 +120,8 @@ class TDKPowerSupply(Device):
 		else:
 			#no error
 			pass
-		
-		
+
+
 if __name__=='__main__':
 	tdk = TDKPowerSupply('tdk_ps','TCPIP0::169.254.223.84::inst0::INSTR')
 	tdk.unlock()
@@ -130,4 +130,3 @@ if __name__=='__main__':
 	tdk.set('voltage',5.0)
 	print(tdk.get('voltage'))
 	tdk.clean()
-	

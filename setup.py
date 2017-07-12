@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 with open('README.rst') as f:
 	readme= f.read()
-	
+
 setup(
 	name='ControlSystem',
 	version='0.1.0',

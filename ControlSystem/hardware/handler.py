@@ -10,7 +10,7 @@ class VISAHandler:
 			- rm = resource manager object
 			- inst = visa instrument object
 			- current_RS485_address = current RS485 address if RS485_enabled = True
-		
+
 		Methods:
 			connect() - attempt to connect to device, if it fails it returns False
 			list_resources() - utility function showing avalible resources
@@ -19,27 +19,27 @@ class VISAHandler:
 			select_RS485_device(RS485_address) - change to device with RS485_address as the address
 			close() - close resource
 	"""
-	
+
 	def __init__(self,name,address='',RS485_enabled=False):
-		
+
 		self.name = name
 		self.logger = logging.getLogger('visa_handler')
-		
+
 		self.rm = visa.ResourceManager()
 		self.address = address
 		self.connection_status = False
 		self.lock = threading.Lock()
-		
+
 		if RS485_enabled:
 			self.RS485_enabled = True
 			self.current_RS485_address = ''
-		
+
 		self.logger.info('Connecting to VISA device at {}'.format(address))
 		self.connection_status = self.connect()
 		if not self.connection_status:
 			pass
 			#raise RuntimeError('Connection to VISA failed')
-		
+
 	def connect(self):
 		if not self.address == '':
 			try:
@@ -51,10 +51,10 @@ class VISAHandler:
 		else:
 			self.logger.error('Connection failed: No address specified')
 			return False
-	
+
 	def list_resources(self):
 		self.logger.info(self.rm.list_resources())
-		
+
 	def write(self,cmd):
 		self.lock.acquire()
 		try:
@@ -68,7 +68,7 @@ class VISAHandler:
 			return False
 		finally:
 			self.lock.release()
-	
+
 	def query(self,cmd):
 		self.lock.acquire()
 		try:
@@ -81,8 +81,8 @@ class VISAHandler:
 			return False
 		finally:
 			self.lock.release()
-	
-	def select_RS485_device(self,RS485_address):			
+
+	def select_RS485_device(self,RS485_address):
 		if self.RS485_enabled:
 			if not RS485_address == self.current_RS485_address:
 				#self.lock.acquire()
@@ -101,7 +101,7 @@ class VISAHandler:
 		else:
 			self.logger.warning('Selection not possible: RS485 not enabled')
 			False
-			
+
 	def close(self):
 		try:
 			self.instrument.close()
