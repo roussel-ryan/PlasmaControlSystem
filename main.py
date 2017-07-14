@@ -1,4 +1,3 @@
-
 import logging
 import logging.config
 import time
@@ -9,15 +8,15 @@ import yaml
 import tkinter as ttk
 
 from ControlSystem.GUI import panel
-from ControlSystem.control import handler
+from ControlSystem.control import plasma_device_manager
 
 class App:
-	def __init__(self,master,io_queue):
+	def __init__(self,master):
 		self.logger = logging.getLogger('main')
 
 		self.logger.info('Starting intialization process')
 
-		self.plasma_handler = handler.PlasmaHandler(io_queue)
+		self.plasma_handler = plasma_device_manager.PlasmaDeviceManager()
 
 		self.master_frame = ttk.Frame(master)
 		self.master_frame.pack()
@@ -65,6 +64,8 @@ class App:
 		self.update_count = 0
 		self.update()
 
+	def start(self):
+		self.plasma_handler.start()
 
 	def update(self):
 		"""
@@ -100,15 +101,12 @@ class App:
 
 
 def example():
-	master_queue = queue.Queue()
 
 	root = ttk.Tk()
 
 
-	app = App(root,master_queue)
-
-	update_thread = handler.UpdateDevices('UpdateThread',app.plasma_handler.devices,master_queue)
-	update_thread.start()
+	app = App(root)
+	app.start()
 
 	root.mainloop()
 
