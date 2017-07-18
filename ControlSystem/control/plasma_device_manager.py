@@ -60,6 +60,7 @@ class PlasmaDeviceManager(object):
 				#	self._queue.put({'type': 'return','device': command['device_name'],'attribute': command['attribute'],'value': value})
 				if command['type'] == 'set':
 					with self._devices_lock:
+						print("setting: ", command['device_name'], command['attribute'], command['value'])
 						self._devices[command['device_name']].set(command['attribute'], command['value'])
 				elif command['type'] == 'return':
 					for panel in self._panels:

@@ -1,5 +1,4 @@
 import visa
-import threading
 import logging
 
 
@@ -10,7 +9,6 @@ class VisaConnection(object):
     def __init__(self, name, address, RS485_enabled):
         self._name = name
         self._logger = logging.getLogger('VisaConnection "{}"'.format(self._name))
-        self._lock = threading.Lock()
         self._state = True
         self._RS485_enabled = RS485_enabled
         self._RS485_address = None
@@ -23,21 +21,19 @@ class VisaConnection(object):
 
     def write(self, command):
         if self._state:
-            with self._lock:
-                try:
-                    self._connection.write(command)
-                except visa.VisaIOError as e:
-                    self._logger.error('VisaConnection {}: write failed'.format(self._name))
-                    self._state = False
+            try:
+                self._connection.write(command)
+            except visa.VisaIOError as e:
+                self._logger.error('VisaConnection {}: write failed'.format(self._name))
+                self._state = False
 
     def query(self, command):
         if self._state:
-            with self._lock:
-                try:
-                    return self._connection.query(command)
-                except visa.VisaIOError as e:
-                    self._logger.error('VisaConnection {}: query failed'.format(self._name))
-                    self._state = False
+            try:
+                return self._connection.query(command)
+            except visa.VisaIOError as e:
+                self._logger.error('VisaConnection {}: query failed'.format(self._name))
+                self._state = False
         return None
 
     def select_RS485_device(self, RS485_address):

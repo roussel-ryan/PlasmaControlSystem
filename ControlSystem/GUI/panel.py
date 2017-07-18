@@ -100,7 +100,7 @@ class BottomButtons(Panel):
 		self.members['Save'] = ttk.Button(self.frame,text='Save',command=self.test)
 		self.members['Load'] = ttk.Button(self.frame,text='Load',command=self.test)
 		self.members['Apply'] = ttk.Button(self.frame,text='Apply Settings',command=self.test)
-		for name,item in self.members.items():
+		for item in self.members.values():
 			item.pack(side=ttk.LEFT)
 
 	def test(self):
@@ -109,7 +109,7 @@ class BottomButtons(Panel):
 class LogBox(Panel):
 	def __init__(self,master):
 		Panel.__init__(self,master,'log_panel')
-		st = ttk.Listbox(self.frame,width=70)#,bg='black',fg='white',font=('Ariel',12,'bold'))
+		st = ttk.Listbox(self.frame,width = 10, height = 10)#,bg='black',fg='white',font=('Ariel',12,'bold'))
+		st.pack()
 		logger = logging.getLogger('gui_box')
 		logger.info(st)
-		st.pack()

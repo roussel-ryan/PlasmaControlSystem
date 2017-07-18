@@ -21,8 +21,8 @@ class App:
 		self.master_frame = ttk.Frame(master)
 		self.master_frame.pack()
 
-		logging_panel = panel.LogBox(self.master_frame)
-		logging_panel.frame.grid(column=2,row=2)
+		#logging_panel = panel.LogBox(self.master_frame)
+		#logging_panel.frame.grid(column=2,row=3)
 
 		control_monitor_frame = ttk.Frame(self.master_frame)
 
@@ -38,7 +38,7 @@ class App:
 		control_monitor_frame.grid(column=2,row=1)
 
 		button_panel = panel.BottomButtons(self.master_frame)
-		button_panel.frame.grid(column=1,row=2)
+		button_panel.frame.grid(column=1,row=3)
 
 		self.plasma_handler.add_panel(monitor_panel)
 		self.plasma_handler.add_panel(interlock_panel)

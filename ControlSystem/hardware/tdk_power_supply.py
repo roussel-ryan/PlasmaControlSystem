@@ -36,7 +36,7 @@ class TDKPowerSupply(device.Device):
 		elif name == 'current':
 			value = self._connection.query('MEAS:CURR?')
 		self.check_errors()
-		return None if self._state != 'ok' else float(value)
+		return None if value is None else float(value)
 
 	@device.Device.first_check_state
 	def check_errors(self):
