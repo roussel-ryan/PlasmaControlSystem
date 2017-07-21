@@ -28,6 +28,8 @@ class PlasmaDeviceManager(object):
 
 		self._logger.info('\033[32mConnecting to Solenoid Power Supply\033[0m')
 		self._devices['solenoid'] = solenoid_power_supply.SolenoidPowerSupply('solenoid')
+		foo = solenoid_power_supply.SolenoidPowerSupply('bah')
+
 
 	def start(self):
 		self._logger.info('\033[32mSpinning up Update Thread\033[0m')

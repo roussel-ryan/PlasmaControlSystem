@@ -1,9 +1,10 @@
+import threading
+import time
 from . import device
 from . import serial_connection
 
 
 class SolenoidPowerSupply(device.Device):
-
 
     def __init__(self, name):
         super().__init__(name)
@@ -28,7 +29,8 @@ class SolenoidPowerSupply(device.Device):
                 return
             currents.append(float(result))
         self._actual_current = sum(currents) / len(currents)
-
+        if abs(self._actual_current - self._target_current) > 1:
+            self._logger.error("actual current different from target current by more than 1 amp")
 
     @device.Device.first_check_state
     def get(self, name):
@@ -43,20 +45,21 @@ class SolenoidPowerSupply(device.Device):
     @device.Device.first_check_state
     def set(self, name, value):
         if name == 'voltage':
-            if (target_voltage < 0 or target_voltage > 100):
-                raise ValueError("solenoid power supply voltage must be between 0 and 100 volts")
-            self._connection.send("SET_VOLT {}".format(target_voltage))
-            self._target_voltage = target_voltage
+            if value != self._target_voltage:
+                if (value < 0 or value > 100):
+                    raise ValueError("solenoid power supply voltage must be between 0 and 100 volts")
+                print("sending set volt", value)
+                self._connection.send("SET_VOLT {}".format(value))
+                self._connection.receive()
+                self._target_voltage = value
         elif name == 'current':
-            if (target_current < 0 or target_current > 100):
-                raise ValueError("solenoid power supply current must be between 0 and 100 amps")
-            self._connection.send("SET_CURR {}".format(target_current))
-            self._target_current = target_current
-            time.sleep(0.5)
-            self.updateActualCurrent()
-            if self._actual_current is not None:
-                if abs(self._actual_current - self._target_current) > 1:
-                    self._logger.error("actual current different from target current by more than 1 amp")
+            if value != self._target_current:
+                if (value < 0 or value > 100):
+                    raise ValueError("solenoid power supply current must be between 0 and 100 amps")
+                print("sending set curr", value)
+                self._connection.send("SET_CURR {}".format(value))
+                self._connection.receive()
+                self._target_current = value
         else:
             raise ValueError('invalid attribute name (expected voltage or current)')
         if not self._connection.is_ok():
