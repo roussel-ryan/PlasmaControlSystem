@@ -1,14 +1,18 @@
 import threading
 import time
+import platform
 from . import device
 from . import serial_connection
+
+
+port = '/dev/cu.usbmodem1411' if platform.system() == 'Darwin' else 'COM3'
 
 
 class SolenoidPowerSupply(device.Device):
 
     def __init__(self, name):
         super().__init__(name)
-        self._connection = serial_connection.SerialConnection(self.name, '/dev/cu.usbmodem1411')
+        self._connection = serial_connection.SerialConnection(self.name, port)
         self._target_current = 0.0
         self._target_voltage = 0.0
         self._actual_current = 0.0
