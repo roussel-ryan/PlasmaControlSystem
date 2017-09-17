@@ -3,7 +3,33 @@ import logging
 
 
 class VisaConnection(object):
-
+    """
+    Creates and interfaces with a single VISA device.
+    
+    Multiple Device Control:
+    ------------------------
+    VISA devices may have the ability to control other devices through the use of
+    RS485 serial protocall, Example: TDK Power Supply. If this is used, interfacing to
+    devices requires both the VISA address and the RS485 address.
+    
+    If this is used, the user needs to select a device before every write/query action
+    or it will get sent to the previous selection.
+    
+    Attributes:
+    -----------
+    name            = human reference name of device
+    _logger         = object specific logger object
+    _state          = enable/disable state of the device
+    _RS485_enabled  = enable/disable RS485 forwarding to control other devices
+    _RS485_address  = RS485 address within the VISA connection
+    _connection     = pyVISA object
+    
+    Methods:
+    --------
+    is_ok()         = returns enable/disable state of device
+    write(command)  = writes command to currently selected device (if enabled)
+    query(command)  = reads one line of serial buffer and returns data 
+    """
     _resource_manager = visa.ResourceManager()
 
     def __init__(self, name, address, RS485_enabled):
