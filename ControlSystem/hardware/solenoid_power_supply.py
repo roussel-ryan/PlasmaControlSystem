@@ -9,7 +9,30 @@ port = '/dev/cu.usbmodem1411' if platform.system() == 'Darwin' else 'COM3'
 
 
 class SolenoidPowerSupply(device.Device):
-
+    """
+    Class for interfacing with the Arduino-Controlled plasma confinement solenoid
+    power supply. See the Arduino folder for interfacing sketch.
+    
+    The power supply is a dual voltage/current controlled power supply hooked up to a 
+    variable resitance load (the coils can get hot) so it is important to check the actual
+    current when setting the current if it becomes voltage limited.
+    
+    Attributes:
+    -----------
+    name                    = human reference name of device (inherated from device class)
+    _logger                 = object specific logger object (inherated from device class)
+    _state                  = enable/disable state of the device (inherated from device class)
+    _connection             = serial communication object
+    _target_current         = current setpoint
+    _target_voltage         = voltage setpoint
+    _actual_current         = measured current from power supply
+    
+    Methods:
+    --------
+    set_error()             = set NULL for settings if connection fails
+    get_actual_current()    = get the actual current measured by the power supply
+    receive()               = reads one line of serial buffer and returns data 
+    """
     def __init__(self, name):
         super().__init__(name)
         self._connection = serial_connection.SerialConnection(self.name, port)
@@ -23,7 +46,7 @@ class SolenoidPowerSupply(device.Device):
         self._target_voltage = None
         self._actual_current = None
 
-    def updateActualCurrent(self):
+    def get_actual_current(self):
         currents = []
         for _ in range(10):
             self._connection.send('READ_CURR')
