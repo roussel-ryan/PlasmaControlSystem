@@ -11,7 +11,15 @@ from ControlSystem.GUI import panel
 from ControlSystem.control import plasma_device_manager
 
 class App:
+	"""
+	Overarching tkinter app for all plasma control boxes
+	"""
 	def __init__(self,master):
+		"""
+		Adds all tkinter boxes and organizes their locations in the GUI
+		Defines button functionality
+		Controls updating frequency
+		"""
 		self.logger = logging.getLogger('main')
 
 		self.logger.info('Starting intialization process')
@@ -69,8 +77,8 @@ class App:
 
 	def update(self):
 		"""
-			does all the polling for current data,temporarily raises the logger level
-			to info to suppress pyvisa debug messages which slow program
+		does all the polling for current data,temporarily raises the logger level
+		to info to suppress pyvisa debug messages which slow program
 		"""
 
 		self.plasma_handler.process_queue()
@@ -100,17 +108,24 @@ class App:
 		self.master_frame.after(1000,self.update)
 
 
-def example():
-
+def run_app():
+	"""
+	spawns main tkinter object
+	"""
 	root = ttk.Tk()
-
-
 	app = App(root)
 	app.start()
 
 	root.mainloop()
 
 def set_global_logging_level(level):
+	"""
+	sets global logging level
+	
+	Args:
+	-----
+	level		= logging level to be set, ex. logging.DEBUG
+	"""
 	for name,logger in logging.Logger.manager.loggerDict.items():
 		try:
 			logger.setLevel(level)
@@ -119,17 +134,25 @@ def set_global_logging_level(level):
 		#print(' '.join((name,str(logger))))
 
 def load_logging_config():
+	"""
+	sets logging configuration based off of file 'logging_config.yml'
+	"""
+	
+	#global logging level
+	gll = logging.INFO
+	
 	with open("logging_config.yml", 'r') as stream:
 		try:
 			config = yaml.load(stream)
 		except yaml.YAMLError as exc:
 			print(exc)
 	logging.config.dictConfig(config)
-	set_global_logging_level(logging.INFO)
-
+	set_global_logging_level(gll)
+	
+	#PIL logging is annoying so specify the highest level so we don't see any output
 	PIL_logger = logging.getLogger('PIL')
 	PIL_logger.setLevel(logging.CRITICAL)
 
 if __name__=='__main__':
 	load_logging_config()
-	example()
+	run_app()
