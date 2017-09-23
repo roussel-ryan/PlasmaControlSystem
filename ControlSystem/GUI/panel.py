@@ -6,6 +6,16 @@ from . import control_diagram
 from . import logging_to_tkinter
 
 class Panel:
+	"""
+	Handles input and output from a grouped system, ie the power supplies
+	
+	Attributes:
+	-----------
+	master			= tkinter master object for panel
+	frame			= frame created inside the master panel
+	members			= dictonary of sub members of the panel, ie one member for each control/device
+	query_items		= dictonary of all possible input/output data names for updating the GUI
+	"""
 	def __init__(self,master,name):
 		self.name = name
 		self.frame = ttk.Frame(master)
