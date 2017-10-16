@@ -14,14 +14,14 @@ class PlasmaApp:
 
 		control_monitor_frame = ttk.Frame(self.master_frame)
 
-		monitor_panel = panel.MonitorPanel(control_monitor_frame)
-		monitor_panel.frame.grid(column=1,row=1)
+		self.monitor_panel = panel.MonitorPanel(control_monitor_frame)
+		self.monitor_panel.frame.grid(column=1,row=1)
 
-		interlock_panel = panel.InterlockPanel(control_monitor_frame)
-		interlock_panel.frame.grid(column=1,row=2)
+		self.interlock_panel = panel.InterlockPanel(control_monitor_frame)
+		self.interlock_panel.frame.grid(column=1,row=2)
 
-		control_panel = panel.ControlPanel(self.master_frame)
-		control_panel.frame.grid(column=1,row=1)
+		self.control_panel = panel.ControlPanel(self.master_frame)
+		self.control_panel.frame.grid(column=1,row=1)
 
 		control_monitor_frame.grid(column=2,row=1)
 
@@ -53,8 +53,16 @@ class PlasmaApp:
 			does all the polling for current data,temporarily raises the logger level
 			to info to suppress pyvisa debug messages which slow program
 		"""
+		#populate system data for periodic monitoring
+		system_data = {}
+		for name,value in self.controller.__dict__.items():
+			if not name[0] == '_':
+				device_name,attribute = name.split('_')
+				system_data[device_name] = {attribute,0.0}
 
-
+		self.monitor_panel.update(system_data)
+		self.interlock_panel.update(system_data)
+		self.control_panel.update(system_data)
 		#try:
 		#	if self.plasma_handler.queue.qsize():
 		#		logging.info(self.plasma_handler.queue.get(0,2))

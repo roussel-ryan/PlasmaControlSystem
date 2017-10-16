@@ -9,8 +9,8 @@ class PlasmaQueueWorker:
         '''
         start connections with all devices
         '''
-        self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
-        self._Arduino_handler = ArduinoHandler()
+        #self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+        #self._Arduino_handler = ArduinoHandler()
 
 
 
@@ -33,6 +33,7 @@ class PlasmaQueueWorker:
                 self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
                 self._TDK_handler.write(self._tdk_set_commands[cmd_attribute].format(cmd_value))
             elif cmd_device == 'SOLENOID':
+                pass
                 #do something to set solenoid attr
         elif cmd_type == 'GET':
             if cmd_device == 'HEATER' or cmd_device == 'DISCHARGE':
