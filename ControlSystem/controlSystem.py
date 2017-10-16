@@ -1,4 +1,4 @@
-import worker
+import ControlSystem.worker as worker
 
 from functools import wraps
 
@@ -17,16 +17,16 @@ class PlasmaSourceControl(object):
         self.heater_voltage = 0.0
 
         self.discharge_current = 0.0
-        self.discharge_volatge = 0.0
+        self.discharge_voltage = 0.0
 
-        self.pressure = 0.0
+        self.chamber_pressure = 0.0
 
         self.water_interlock = False
         self.pressure_interlock = False
 
 
     def start(self):
-        self.run_plasma_source()
+        self._run_plasma_source()
 
     def _run_plasma_source(self):
         while len(self._command_queue):
@@ -60,7 +60,7 @@ class PlasmaSourceControl(object):
         def wrapper(*args,**kwargs):
             device = function.__name__.split('_')[0].upper()
             attribute = function.__name__.split('_')[1].upper()
-            args[0]._command_queue.append('SET {} {} {:3.2f}'.format(device,attribute,args[1]))
+            args[0]._command_queue.put('SET {} {} {:3.2f}'.format(device,attribute,args[1]))
             function(*args,**kwargs)
         return wrapper
 
@@ -128,7 +128,7 @@ class PlasmaSourceControl(object):
 
 if __name__=='__main__':
     s = PlasmaSourceControl([],None)
-    s.solenoid_current = 5
+    s.solenoid_current = 5.0
+
+    print(s.solenoid_current)
     print(s.__dict__)
-    #print(s.solenoid_current_setpoint)
-    print(s._command_queue)

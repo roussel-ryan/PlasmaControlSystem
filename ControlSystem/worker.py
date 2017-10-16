@@ -1,5 +1,5 @@
 
-from hardware.handler import VISAHandler
+from ControlSystem.hardware.handler import VISAHandler
 
 class PlasmaQueueWorker:
     '''

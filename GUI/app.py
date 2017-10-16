@@ -1,9 +1,7 @@
 import tkinter as ttk
-import panel
-
+import GUI.panel as panel
 class PlasmaApp:
 	def __init__(self,master,io_queue,controller):
-		self.logger = logging.getLogger('main')
 		self.controller = controller
 
 		self.master_frame = ttk.Frame(master)
@@ -29,9 +27,14 @@ class PlasmaApp:
 		button_panel.frame.grid(column=1,row=2)
 
 		#define button functionality
-		button_panel.members[''].config(command = lambda: self.plasma_handler.send_user_inputs(monitor_panel))
+		#button_panel.members[''].config(command = lambda: self.plasma_handler.send_user_inputs(monitor_panel))
 
-
+		#populate system data dict
+		self.system_data = {}
+		for name,value in self.controller.__dict__.items():
+			if not name[0] == '_':
+				device_name = name.split('_')[0]
+				self.system_data[device_name] = {}
 
 		# button_t = ttk.Button(master,text='True',command = interlock_panel.interlock.members['water'].set_true)
 		# button_f = ttk.Button(master,text='False',command = interlock_panel.interlock.members['water'].set_false)
@@ -54,15 +57,15 @@ class PlasmaApp:
 			to info to suppress pyvisa debug messages which slow program
 		"""
 		#populate system data for periodic monitoring
-		system_data = {}
 		for name,value in self.controller.__dict__.items():
 			if not name[0] == '_':
-				device_name,attribute = name.split('_')
-				system_data[device_name] = {attribute,0.0}
-
-		self.monitor_panel.update(system_data)
-		self.interlock_panel.update(system_data)
-		self.control_panel.update(system_data)
+				device_name = name.split('_')[0]
+				attribute = name.split('_')[1]
+				self.system_data[device_name][attribute] = value
+		print(self.system_data)
+		self.monitor_panel.update(self.system_data)
+		self.interlock_panel.update(self.system_data)
+		self.control_panel.update(self.system_data)
 		#try:
 		#	if self.plasma_handler.queue.qsize():
 		#		logging.info(self.plasma_handler.queue.get(0,2))
@@ -83,6 +86,6 @@ class PlasmaApp:
 		# if self.update_count % 100:
 			# logging.info('elapsed time for update: {} s'.format(time.time()-t0))
 
-		# self.update_count +=1
-
-		self.master_frame.after(1000,self.update)
+		self.update_count +=1
+		if self.update_count < 10:
+			self.master_frame.after(1000,self.update)

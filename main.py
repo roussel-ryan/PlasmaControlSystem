@@ -18,10 +18,10 @@ def main():
 	#thread = ???
 	dummy_thread = None
 	plasma_controller = controlSystem.PlasmaSourceControl(master_queue,dummy_thread)
-	plasma_controller.start()
+	#plasma_controller.start()
 
 	root = ttk.Tk()
-	app = app.PlasmaApp(root,master_queue,plasma_controller)
+	app.PlasmaApp(root,master_queue,plasma_controller)
 
 	root.mainloop()
 
@@ -36,5 +36,4 @@ def load_logging_config():
 	PIL_logger.setLevel(logging.CRITICAL)
 
 if __name__=='__main__':
-	load_logging_config()
-	example()
+	main()
