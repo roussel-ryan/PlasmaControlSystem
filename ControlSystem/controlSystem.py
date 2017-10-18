@@ -3,12 +3,12 @@ import ControlSystem.worker as worker
 from functools import wraps
 
 class PlasmaSourceControl(object):
-    def __init__(self,queue,thread):
+    def __init__(self):
         '''
         Initilazation of plasma source controller
         '''
-        self._command_queue = queue
-        self._worker = worker.PlasmaQueueWorker()
+        self._source = worker.PlasmaSource()
+        self.setpoints = {}
 
         self.solenoid_current = 0.0
         self.solenoid_voltage = 0.0
@@ -25,23 +25,9 @@ class PlasmaSourceControl(object):
         self.pressure_interlock = False
 
 
-    def start(self):
-        self._run_plasma_source()
 
-    def _run_plasma_source(self):
-        while len(self._command_queue):
-            cmd = self._command_queue.popleft().split(' ')
-            if cmd[0] == 'GET':
-                self.__dict__['_{}_{}'.format(cmd[1].lower(),cmd[2].lower())] = self.worker.process_command(cmd)
-            elif cmd[0] == 'SET':
-                if self.water_interlock and self.pressure_interlock:
-                        self.worker.process_command(cmd)
-            else:
-                raise ValueError('Command {} not supported'.format(cmd[0]))
-
-        wait(0.1)
-        self._run_plasma_source()
-
+    def stop(self):
+        self._source.stop()
 
     ##########################################################################
     #Property definitions
@@ -50,7 +36,7 @@ class PlasmaSourceControl(object):
     def _update_setpoint(function):
         @wraps(function)
         def wrapper(*args,**kwargs):
-            setattr(args[0],function.__name__ + '_setpoint',args[1])
+            self.setpoints[function.__name__] = args[1]
             function(*args,**kwargs)
         return wrapper
 
@@ -58,35 +44,33 @@ class PlasmaSourceControl(object):
     def _append_set_command_to_queue(function):
         @wraps(function)
         def wrapper(*args,**kwargs):
-            device = function.__name__.split('_')[0].upper()
-            attribute = function.__name__.split('_')[1].upper()
-            args[0]._command_queue.put('SET {} {} {:3.2f}'.format(device,attribute,args[1]))
+            self._worker.add_command('SET {} {:3.2f}'.format(__name__.upper(),args[1]))
             function(*args,**kwargs)
         return wrapper
 
     @property
     def solenoid_current(self):
-        return self._solenoid_current
+        return self._source.get_state('solenoid_current')
 
     @property
     def solenoid_voltage(self):
-        return self._solenoid_voltage
+        return self._source.get_state('solenoid_voltage')
 
     @property
     def discharge_voltage(self):
-        return self._discharge_voltage
+        return self._source.get_state('discharge_voltage')
 
     @property
     def discharge_current(self):
-        return self._discharge_current
+        return self._source.get_state('discharge_current')
 
     @property
     def heater_current(self):
-        return self._heater_current
+        return self._source.get_state('heater_current')
 
     @property
     def heater_voltage(self):
-        return self._heater_voltage
+        return self._source.get_state('heater_voltage')
 
     @solenoid_current.setter
     @_append_set_command_to_queue

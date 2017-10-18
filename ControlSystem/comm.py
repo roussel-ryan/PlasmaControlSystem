@@ -1,3 +1,4 @@
+'''
 from hardware.handler import VISAHandler
 
 class UniversalCommunicatior:
@@ -7,14 +8,14 @@ class UniversalCommunicatior:
         self._tdk_query_commands = {'voltage':'MEAS:VOLT?','current':'MEAS:CURR?'}
 
     def connect_To_Ardino(self,timeout = 1.0):
-        '''
-            attempt to connect to the ardino, nothing is returned before <timeout> throw a connection error
-        '''
+
+            #attempt to connect to the ardino, nothing is returned before <timeout> throw a connection error
+
 
     def write_To_Arduino(self,msg, timeout = 1.0):
-        '''
-        Writes message to Arduino and waits for <timeout> seconds for response, if timeout is 0.0 do not look for a response
-        '''
+
+        #Writes message to Arduino and waits for <timeout> seconds for response, if timeout is 0.0 do not look for a response
+
 
     def write_To_TDKSupplies(self,attr,type='query',set_value=0.0):
         if type == 'query':
@@ -26,3 +27,4 @@ class UniversalCommunicatior:
 
 	    if self.handler.query('OUTP:STAT?') == 'OFF':
             self.handler.write('OUTP:STAT ON')
+'''

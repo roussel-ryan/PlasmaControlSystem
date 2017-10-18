@@ -13,17 +13,14 @@ from GUI import app
 from ControlSystem import controlSystem
 
 def main():
-	master_queue = queue.Queue()
-	#make a thread here and start it running
-	#thread = ???
-	dummy_thread = None
-	plasma_controller = controlSystem.PlasmaSourceControl(master_queue,dummy_thread)
-	#plasma_controller.start()
-
-	root = ttk.Tk()
-	app.PlasmaApp(root,master_queue,plasma_controller)
-
-	root.mainloop()
+	try:
+		plasma_controller = controlSystem.PlasmaSourceControl()
+		root = ttk.Tk()
+		app.PlasmaApp(root,plasma_controller)
+		root.mainloop()
+	finally:
+		plasma_controller.stop()
+		root.destroy()
 
 def load_logging_config():
 	with open("logging_config.yml", 'r') as stream:

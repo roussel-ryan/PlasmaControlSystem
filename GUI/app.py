@@ -1,7 +1,7 @@
 import tkinter as ttk
 import GUI.panel as panel
 class PlasmaApp:
-	def __init__(self,master,io_queue,controller):
+	def __init__(self,master,controller):
 		self.controller = controller
 
 		self.master_frame = ttk.Frame(master)
