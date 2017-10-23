@@ -1,4 +1,6 @@
-import ControlSystem.worker as worker
+import logging
+
+import ControlSystem.source as source
 
 from functools import wraps
 
@@ -7,7 +9,10 @@ class PlasmaSourceControl(object):
         '''
         Initilazation of plasma source controller
         '''
-        self._source = worker.PlasmaSource()
+        logger = logging.getLogger('__main__.'+__name__)
+        logger.info('Starting PlasmaSourceControl object')
+
+        self._source = source.PlasmaSource()
         self.setpoints = {}
 
         self.solenoid_current = 0.0
@@ -36,7 +41,7 @@ class PlasmaSourceControl(object):
     def _update_setpoint(function):
         @wraps(function)
         def wrapper(*args,**kwargs):
-            self.setpoints[function.__name__] = args[1]
+            args[0].setpoints[function.__name__] = args[1]
             function(*args,**kwargs)
         return wrapper
 
@@ -44,7 +49,7 @@ class PlasmaSourceControl(object):
     def _append_set_command_to_queue(function):
         @wraps(function)
         def wrapper(*args,**kwargs):
-            self._worker.add_command('SET {} {:3.2f}'.format(__name__.upper(),args[1]))
+            args[0]._source.add_command('SET {} {:3.2f}'.format(function.__name__.upper(),args[1]))
             function(*args,**kwargs)
         return wrapper
 

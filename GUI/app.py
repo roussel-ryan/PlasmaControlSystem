@@ -1,14 +1,20 @@
+import logging
+
 import tkinter as ttk
+
 import GUI.panel as panel
 class PlasmaApp:
 	def __init__(self,master,controller):
+		self._logger = logging.getLogger('__main__.'+__name__)
+		self._logger.info('Starting GUI')
+
 		self.controller = controller
 
 		self.master_frame = ttk.Frame(master)
 		self.master_frame.pack()
 
-		logging_panel = panel.LogBox(self.master_frame)
-		logging_panel.frame.grid(column=2,row=2)
+		#logging_panel = panel.LogBox(self.master_frame)
+		#logging_panel.frame.grid(column=2,row=2)
 
 		control_monitor_frame = ttk.Frame(self.master_frame)
 
@@ -56,13 +62,17 @@ class PlasmaApp:
 			does all the polling for current data,temporarily raises the logger level
 			to info to suppress pyvisa debug messages which slow program
 		"""
+		#self._logger.info('Updating GUI values')
 		#populate system data for periodic monitoring
 		for name,value in self.controller.__dict__.items():
+			self._logger.debug(name)
 			if not name[0] == '_':
-				device_name = name.split('_')[0]
-				attribute = name.split('_')[1]
-				self.system_data[device_name][attribute] = value
-		print(self.system_data)
+				try:
+					device_name = name.split('_')[0]
+					attribute = name.split('_')[1]
+					self.system_data[device_name][attribute] = value
+				except IndexError:
+					pass
 		self.monitor_panel.update(self.system_data)
 		self.interlock_panel.update(self.system_data)
 		self.control_panel.update(self.system_data)

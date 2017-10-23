@@ -37,7 +37,7 @@ class VISAHandler:
 			self.inst = self.rm.open_resource(self.address)
 			return True
 		except visa.VisaIOError as e:
-			self.logger.error(e.args[0])
+
 			return False
 
 
@@ -49,10 +49,10 @@ class VISAHandler:
 			self.inst.write(cmd)
 			return True
 		except AttributeError:
-			self.logger.error('Write command failed, resource was not found.')
+			pass
 			return False
 		except visa.VisaIOError as e:
-			self.logger.error(e.args[0])
+
 			return False
 		finally:
 			self.lock.release()
@@ -61,10 +61,8 @@ class VISAHandler:
 		try:
 			return self.inst.query(cmd)
 		except AttributeError:
-			self.logger.error('Query command failed, resource was not found.')
 			return False
 		except visa.VisaIOError as e:
-			self.logger.error(e.args[0])
 			return False
 
 
@@ -77,24 +75,20 @@ class VISAHandler:
 					self.current_RS485_address = RS485_address
 					return True
 				except visa.VisaIOError as e:
-					self.logger.error(e.args[0])
 					return False
 				finally:
 					#self.lock.release()
 					pass
 			else:
-				True
+				return True
 		else:
-			self.logger.warning('Selection not possible: RS485 not enabled')
-			False
+			return False
 
 	def close(self):
 		try:
 			self.instrument.close()
 			return True
 		except AttributeError:
-			self.logger.error('Close operation failed, no device to close')
 			return False
 		except visa.VisaIOError as e:
-			self.logger.error(e.args[0])
 			return False

@@ -1,8 +1,11 @@
 import os
 import queue
 import threading
+import logging
 
 from ControlSystem.hardware.handler import VISAHandler
+
+import ControlSystem.updater as updater
 
 class PlasmaSource:
     '''
@@ -12,22 +15,33 @@ class PlasmaSource:
         '''
         start connections with all devices
         '''
-        self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
-        self._Arduino_handler = ArduinoHandler()
+        self._logger = logging.getLogger('__main__.'+__name__)
+        self._logger.info('Starting PlasmaSource object')
+        self._logger.info('Beginning connections to devices')
+
+        #self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
+        #self._Arduino_handler = ArduinoHandler()
 
         #start threads and queue
+        self._logger.info('Starting queue')
         self._queue = queue.Queue()
+        self._logger.info('Spawing thread and starting')
         self._thread = threading.Thread(target=self.process_queue)
         self._thread.start()
 
         self._state = {}
-        self._state_lock = threading.lock()
+        self._state_lock = threading.Lock()
+
+        self._updater = updater.Updater(self._queue)
 
     def stop(self):
+        self._updater.stop()
         self._queue.put('TERMINATE')
         self._thread.join()
 
+
     def add_command(self,cmd):
+        self._logger.info('Adding cmd {} to the queue, queue length now {}'.format(cmd,self._queue.qsize()))
         self._queue.put(cmd)
 
     def get_state(self,name):
@@ -45,6 +59,7 @@ class PlasmaSource:
 
         try:
             while True:
+                self._logger.info('Processing queue, {} cmds remain'.format(self._queue.qsize()))
                 cmd = self._queue.get()
                 cmd_type = cmd.split(' ')[0]
                 if cmd_type == 'TERMINATE':
@@ -55,21 +70,25 @@ class PlasmaSource:
                      cmd_value = float(cmd.split(' ')[2])
 
                      if cmd_device == 'HEATER' or cmd_device == 'DISCHARGE':
-                         self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
-                         self._TDK_handler.write(self._tdk_set_commands[cmd_attribute].format(cmd_value))
+                         pass
+                         #self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
+                         #self._TDK_handler.write(self._tdk_set_commands[cmd_attribute].format(cmd_value))
                      elif cmd_device == 'SOLENOID':
                          pass
                         #do something to set solenoid attr
                 elif cmd_type == 'GET':
                     if cmd_device == 'HEATER' or cmd_device == 'DISCHARGE':
-                        self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
+                        #self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
                         with self._state_lock:
-                            self._state['_'.join(cmd_device.lower(),cmd_attribute.lower())] = self._TDK_handler.query(self._tdk_query_commands[cmd_attribute])
+                            pass
+                            #self._state['_'.join(cmd_device.lower(),cmd_attribute.lower())] = self._TDK_handler.query(self._tdk_query_commands[cmd_attribute])
                     elif cmd_device == 'SOLENOID':
                         pass
                         #do something to return solenoid attribute
                 else:
                     assert False
                 self._queue.task_done()
+
         except Exception as e:
+            self._logger.exception(e)
             os._exit(1)
