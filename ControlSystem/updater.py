@@ -21,36 +21,28 @@ class Updater(object):
     def __init__(self, queue):
         self._logger = logging.getLogger('__main__.'+__name__)
         self._logger.info('Starting Updater object')
-
         self._queue = queue
         self._index_of_next_command = 0
-        self._stop_flag = False
-        self._stop_flag_lock = threading.Lock()
-        self._timer = threading.Timer(self.time_interval, self._update)
-        self._timer.start()
+        self._event = threading.Event()
+        self._thread = threading.Thread(target=self._update)
+        self._thread.start()
 
     def stop(self):
-        with self._stop_flag_lock:
-            self._stop_flag = True
-        self._timer.join()
+        self._event.set()
+        self._thread.join()
 
     def _update(self):
         try:
-            # Check the stop flag
-            with self._stop_flag_lock:
-                if self._stop_flag:
-                    return
-            # Add command to queue
-            command = self.commands[self._index_of_next_command]
-            self._index_of_next_command += 1
-            if self._index_of_next_command == len(self.commands):
-                self._index_of_next_command = 0
-            self._logger.debug('Adding cmd {} to the queue'.format(command))
-            self._queue.put(command)
-            # Setup new timer
-            self._timer = threading.Timer(self.time_interval, self._update)
-            self._timer.start()
+            while not self._event.wait(timeout=self.time_interval):
+                print('\033[31mUPDATING\033[0m')
+                # Add command to queue
+                command = self.commands[self._index_of_next_command]
+                self._index_of_next_command += 1
+                if self._index_of_next_command == len(self.commands):
+                    self._index_of_next_command = 0
+                self._logger.debug('Adding cmd {} to the queue'.format(command))
+                self._queue.put(command)
         except Exception as e:
             print(e)
             sys.stdout.flush()
-            os.exit(1)
+            os._exit(1)
