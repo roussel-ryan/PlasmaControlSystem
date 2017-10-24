@@ -115,8 +115,8 @@ class Interlock:
 
 		self.canvas = ttk.Canvas(self.frame,**self.size)
 
-		#self.red_light = ttk.PhotoImage(file='images/red_light.gif')
-		package_path = '/'.join(os.path.dirname(__file__).split('\\')[:-1])
+		#self.red_light = ttk.PhotoImage(file='images/red_light.gif'
+		package_path = os.path.dirname(os.path.dirname(__file__))
 		red_light_image = Image.open(package_path + '/GUI/images/red_light.png')
 		self.red_light_photo = ImageTk.PhotoImage(red_light_image)
 		self.canvas.create_image((12.5,12.5),image=self.red_light_photo,anchor=ttk.CENTER)

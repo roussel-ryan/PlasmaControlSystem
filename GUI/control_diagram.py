@@ -28,7 +28,7 @@ class ControlDiagram:
 
 		self.canvas = ttk.Canvas(self.control_frame,**self.size)
 
-		package_path = '/'.join(os.path.dirname(__file__).split('\\')[:-1])
+		package_path = os.path.dirname(os.path.dirname(__file__))
 		self.image_data = {}
 		self.image_data_names = ['base','gas','gas_plasma','gas_solenoid','gas_solenoid_plasma']
 		for name in self.image_data_names:
