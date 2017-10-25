@@ -32,6 +32,8 @@ def main():
 		root = ttk.Tk()
 		app.PlasmaApp(root,plasma_controller)
 		root.mainloop()
+	except Exception as e:
+		logging.exception(e)
 	finally:
 		plasma_controller.stop()
 		root.destroy()

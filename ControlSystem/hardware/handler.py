@@ -114,13 +114,17 @@ class ArduinoHandler:
 
 	def _connect(self):
 		try:
+			logging.debug('Connecting to Arduino at Port: {}'.format(self._port))
 			self._ser = serial.Serial(self._port,self._baud_rate)
+			time.sleep(2)
+			logging.debug('Pinging')
 			self.query('PING')
+			logging.debug('Saw response from arduino')
 		except Exception as e:
 			logging.exception(e)
 
 	def write(self,cmd):
-		self._ser.write(b'{}'.format(cmd))
+		self._ser.write(cmd.encode())
 		time.sleep(0.1)
 		if 'Done' in self._ser.readline():
 			pass
@@ -128,9 +132,10 @@ class ArduinoHandler:
 			raise TimeoutError('{} did not execute'.format(cmd))
 
 	def query(self,cmd):
-		self._ser.write(b'{}'.format(cmd))
+		self._ser.write(b'PING')
 		time.sleep(0.1)
 		result = self._ser.readline()
+		logging.debug(result)
 		if not result == '':
 			return result
 		else:

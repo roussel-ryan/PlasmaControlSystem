@@ -32,7 +32,8 @@ void loop() {
       else if (analogValue > 255)
         analogValue = 255;
       analogWrite(voltageControllerPin, analogValue);
-      Serial.println('Done');
+      Serial.println(value);
+      Serial.println("Done");
     }
     else if (cmd.startsWith("GET_SOLENOID_VOLTAGE")) {
       // GET VOLTAGE
@@ -52,7 +53,7 @@ void loop() {
       else if (analogValue > 255)
         analogValue = 255;
       analogWrite(currentControllerPin, analogValue);
-      Serial.println('Done');
+      Serial.println("Done");
     }
     else if (cmd.startsWith("GET_TARGET_SOLENOID_CURRENT")) {
       // GET CURRENT
@@ -88,3 +89,4 @@ float getPressure(){
   float pressure = (voltavg - 1.06)/0.496; //r=1, ignored smallest pressure values
   return(pressure);
 }
+
