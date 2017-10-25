@@ -21,7 +21,7 @@ class PlasmaSource:
         logging.info('Beginning connections to devices')
 
         #self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
-        #self._Arduino_handler = ArduinoHandler()
+        self._Arduino_handler = ArduinoHandler()
 
         #start threads and queue
         #self._logger.info('Starting queue')
@@ -38,6 +38,7 @@ class PlasmaSource:
         self._updater.stop()
         self._queue.put('TERMINATE')
         self._thread.join()
+        self._Arduino_handler.close()
 
 
     def add_command(self,cmd):

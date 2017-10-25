@@ -2,6 +2,7 @@ import visa
 import logging
 import time
 import threading
+import serial
 
 class VISAHandler:
 	"""
@@ -92,3 +93,48 @@ class VISAHandler:
 			return False
 		except visa.VisaIOError as e:
 			return False
+
+class ArduinoHandler:
+	"""
+		ArduinoHandler(port,baud_rate=9600)
+		Attributes:
+			-
+
+		Methods:
+			connect() - attempt to connect to device, if it fails it returns False
+			write(cmd) - write cmd to device and return True if it succeeds, False if it does not
+			query(cmd) - write cmd to device and read afterwards return read if it succeeds, False if it does not
+			close() - close connection
+	"""
+	def __init__(self,port,baud_rate=9600):
+		self._port = port
+		self._baud_rate = baud_rate
+
+		self._connect()
+
+	def _connect(self):
+		try:
+			self._ser = serial.Serial(self._port,self._baud_rate)
+			self.query('PING')
+		except Exception as e:
+			logging.exception(e)
+
+	def write(self,cmd):
+		self._ser.write(b'{}'.format(cmd))
+		time.sleep(0.1)
+		if 'Done' in self._ser.readline():
+			pass
+		else:
+			raise TimeoutError('{} did not execute'.format(cmd))
+
+	def query(self,cmd):
+		self._ser.write(b'{}'.format(cmd))
+		time.sleep(0.1)
+		result = self._ser.readline()
+		if not result == '':
+			return result
+		else:
+			raise TimeoutError('{} did not return anything'.format(cmd))
+
+	def close(self):
+		self._ser.close()
