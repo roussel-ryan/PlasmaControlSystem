@@ -5,7 +5,6 @@ import logging
 
 from ControlSystem.hardware.handler import VISAHandler
 
-import ControlSystem.updater as updater
 
 class PlasmaSource:
     '''
@@ -15,24 +14,25 @@ class PlasmaSource:
         '''
         start connections with all devices
         '''
-        self._logger = logging.getLogger('__main__.'+__name__)
-        self._logger.info('Starting PlasmaSource object')
-        self._logger.info('Beginning connections to devices')
+        #self._logger = logging.getLogger('__main__.'+__name__)
+        #self._logger.info('Starting PlasmaSource object')
+        #self._logger.info('Beginning connections to devices')
+        logging.info('Starting PlasmaSource object')
+        logging.info('Beginning connections to devices')
 
         #self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
         #self._Arduino_handler = ArduinoHandler()
 
         #start threads and queue
-        self._logger.info('Starting queue')
+        #self._logger.info('Starting queue')
         self._queue = queue.Queue()
-        self._logger.info('Spawing thread and starting')
+        #self._logger.info('Spawing thread and starting')
         self._thread = threading.Thread(target=self.process_queue)
         self._thread.start()
 
         self._state = {}
         self._state_lock = threading.Lock()
 
-        self._updater = updater.Updater(self._queue)
 
     def stop(self):
         self._updater.stop()
@@ -41,7 +41,8 @@ class PlasmaSource:
 
 
     def add_command(self,cmd):
-        self._logger.info('Adding cmd {} to the queue, queue length now {}'.format(cmd,self._queue.qsize()))
+        #self._logger.info('Adding cmd {} to the queue, queue length now {}'.format(cmd,self._queue.qsize()))
+        logging.debug('Adding cmd {} to the queue, queue length now {}'.format(cmd,self._queue.qsize()))
         self._queue.put(cmd)
 
     def get_state(self,name):
@@ -59,7 +60,7 @@ class PlasmaSource:
 
         try:
             while True:
-                self._logger.info('Processing queue, {} cmds remain'.format(self._queue.qsize()))
+                logging.debug('Processing queue, {} cmds remain'.format(self._queue.qsize()))
                 cmd = self._queue.get()
                 cmd_type = cmd.split(' ')[0]
                 if cmd_type == 'TERMINATE':

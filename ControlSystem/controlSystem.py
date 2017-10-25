@@ -9,8 +9,10 @@ class PlasmaSourceControl(object):
         '''
         Initilazation of plasma source controller
         '''
-        logger = logging.getLogger('__main__.'+__name__)
-        logger.info('Starting PlasmaSourceControl object')
+        #logger = logging.getLogger('__main__.'+__name__)
+        #self._logger = logger
+        #self._logger.info('Starting PlasmaSourceControl object')
+        logging.info('Starting PlasmaSourceControl object')
 
         self._source = source.PlasmaSource()
         self.setpoints = {}
@@ -29,7 +31,8 @@ class PlasmaSourceControl(object):
         self.water_interlock = False
         self.pressure_interlock = False
 
-
+    def add_command(self,cmd):
+        self._source.add_command(cmd)
 
     def stop(self):
         self._source.stop()
@@ -49,7 +52,7 @@ class PlasmaSourceControl(object):
     def _append_set_command_to_queue(function):
         @wraps(function)
         def wrapper(*args,**kwargs):
-            args[0]._source.add_command('SET {} {:3.2f}'.format(function.__name__.upper(),args[1]))
+            args[0].add_command('SET {} {:3.2f}'.format(function.__name__.upper(),args[1]))
             function(*args,**kwargs)
         return wrapper
 

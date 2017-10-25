@@ -5,8 +5,9 @@ import tkinter as ttk
 import GUI.panel as panel
 class PlasmaApp:
 	def __init__(self,master,controller):
-		self._logger = logging.getLogger('__main__.'+__name__)
-		self._logger.info('Starting GUI')
+		#self._logger = logging.getLogger('__main__.'+__name__)
+		#self._logger.info('Starting GUI')
+		logging.info('Starting GUI')
 
 		self.controller = controller
 
@@ -62,10 +63,23 @@ class PlasmaApp:
 			does all the polling for current data,temporarily raises the logger level
 			to info to suppress pyvisa debug messages which slow program
 		"""
-		#self._logger.info('Updating GUI values')
+
+		commands = (
+			'GET SOLENOID_CURRENT',
+			'GET SOLENODD_VOLTAGE',
+			'GET DISCHARGE_CURRENT',
+			'GET DISCHARGE_VOLTAGE',
+			'GET HEATER_CURRENT',
+			'GET HEATER_VOLTAGE',
+			'GET WATER_INTERLOCK',
+			'GET PRESSURE_INTERLOCK',
+			'GET CHAMBER_PRESSURE'
+		)
+
+		logging.info('Updating GUI values, step {}'.format(self.update_count))
 		#populate system data for periodic monitoring
 		for name,value in self.controller.__dict__.items():
-			self._logger.debug(name)
+			#self._logger.debug(name)
 			if not name[0] == '_':
 				try:
 					device_name = name.split('_')[0]
@@ -97,5 +111,10 @@ class PlasmaApp:
 			# logging.info('elapsed time for update: {} s'.format(time.time()-t0))
 
 		self.update_count +=1
-		if self.update_count < 10:
-			self.master_frame.after(1000,self.update)
+
+		if self.update_count % 5 == 0:
+			for ele in commands:
+				self.controller.add_command(ele)
+
+		#if self.update_count < 10:
+		self.master_frame.after(1000,self.update)

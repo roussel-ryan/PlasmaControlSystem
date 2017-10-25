@@ -23,13 +23,6 @@ class Updater(object):
         self._logger.info('Starting Updater object')
         self._queue = queue
         self._index_of_next_command = 0
-        self._event = threading.Event()
-        self._thread = threading.Thread(target=self._update)
-        self._thread.start()
-
-    def stop(self):
-        self._event.set()
-        self._thread.join()
 
     def _update(self):
         try:
