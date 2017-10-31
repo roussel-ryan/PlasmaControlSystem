@@ -14,7 +14,12 @@ class PlasmaSourceControl(object):
         #self._logger.info('Starting PlasmaSourceControl object')
         logging.info('Starting PlasmaSourceControl object')
 
-        self._source = source.PlasmaSource()
+        self.state_variables = ('solenoid_current','solenoid_voltage',\
+        'heater_current','heater_voltage','discharge_current',\
+        'discharge_voltage','chamber_pressure','water_interlock',\
+        'pressure_interlock')
+
+        self._source = source.PlasmaSource(self.state_variables)
         self.setpoints = {}
 
         self.solenoid_current = 0.0
@@ -31,7 +36,7 @@ class PlasmaSourceControl(object):
         self.water_interlock = False
         self.pressure_interlock = False
 
-    def _add_command(self,cmd):
+    def add_command(self,cmd):
         self._source.add_command(cmd)
 
     def stop(self):
@@ -52,7 +57,7 @@ class PlasmaSourceControl(object):
     def _append_set_command_to_queue(function):
         @wraps(function)
         def wrapper(*args,**kwargs):
-            args[0]._add_command('SET {} {:3.2f}'.format(function.__name__.upper(),args[1]))
+            args[0].add_command('SET {} {:3.2f}'.format(function.__name__.upper(),args[1]))
             function(*args,**kwargs)
         return wrapper
 
@@ -82,12 +87,8 @@ class PlasmaSourceControl(object):
 
     @property
     def chamber_pressure(self):
-<<<<<<< HEAD
-        return self._source.get_state('heater_voltage')
-=======
         return self._source.get_state('chamber_pressure')
 
->>>>>>> 7b32c7b0059266c7ac5f04aaeabb2b433638f5a4
 
     @solenoid_current.setter
     @_append_set_command_to_queue
@@ -126,16 +127,10 @@ class PlasmaSourceControl(object):
         pass
 
     @chamber_pressure.setter
-<<<<<<< HEAD
-    def chamber_pressure(self,dummy):
-        pass
-
-
-=======
     def chamber_pressure(self,*args):
         #shold never be called
         pass
->>>>>>> 7b32c7b0059266c7ac5f04aaeabb2b433638f5a4
+
 
 if __name__=='__main__':
     s = PlasmaSourceControl([],None)

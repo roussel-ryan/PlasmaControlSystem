@@ -10,7 +10,7 @@ class PlasmaSource:
     '''
     worker class to process the plasma queue
     '''
-    def __init__(self):
+    def __init__(self,intial_state):
         '''
         start connections with all devices
         '''
@@ -31,6 +31,9 @@ class PlasmaSource:
         self._thread.start()
 
         self._state = {}
+        #intialize variable dict
+        for ele in intial_state:
+            self._state[ele] = 0.0 
         self._state_lock = threading.Lock()
 
 

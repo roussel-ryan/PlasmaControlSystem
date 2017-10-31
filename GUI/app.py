@@ -77,10 +77,10 @@ class PlasmaApp:
 		)
 
 		logging.info('Updating GUI values, step {}'.format(self.update_count))
-		logging.info('Controller dict items: {}'.format(dir(self.controller)))
+		#logging.info('Controller dict items: {}'.format(dir(self.controller)))
 
 		#populate system data for periodic monitoring
-		for name in dir(self.controller):
+		for name in dir(self.controller.state_variables):
 			#self._logger.debug(name)
 			if not name[0] == '_':
 				try:
