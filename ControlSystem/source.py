@@ -21,7 +21,7 @@ class PlasmaSource:
         logging.info('Beginning connections to devices')
 
         #self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
-        self._Arduino_handler = ArduinoHandler('COM5')
+        self._Arduino_handler = ArduinoHandler('COM4')
 
         #start threads and queue
         #self._logger.info('Starting queue')
@@ -61,8 +61,8 @@ class PlasmaSource:
 
         try:
             while True:
-                logging.debug('Processing queue, {} cmds remain'.format(self._queue.qsize()))
                 cmd = self._queue.get()
+                logging.info('Processing {}, {} cmds remain'.format(cmd,self._queue.qsize()))
                 cmd_type = cmd.split(' ')[0]
                 if cmd_type == 'TERMINATE':
                     return
@@ -79,6 +79,8 @@ class PlasmaSource:
                          pass
                         #do something to set solenoid attr
                 elif cmd_type == 'GET':
+                    cmd_device = cmd.split(' ')[1].split('_')[0]
+                    cmd_attribute = cmd.split(' ')[1].split('_')[1]
                     if cmd_device == 'HEATER' or cmd_device == 'DISCHARGE':
                         #self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
 
@@ -88,11 +90,16 @@ class PlasmaSource:
                             #self._state['_'.join(cmd_device.lower(),cmd_attribute.lower())] = self._TDK_handler.query(self._tdk_query_commands[cmd_attribute])
                     elif cmd_device == 'SOLENOID':
                         pass
+                    elif cmd_device == 'CHAMBER':
+                        with self._state_lock:
+                            logging.debug('Getting pressure')
+                            self._state['_'.join((cmd_device.lower(),cmd_attribute.lower()))] = float(self._Arduino_handler.query('GET_PRESSURE').decode().strip())
+                            logging.info('Pressure reading is {}'.format(self._state['chamber_pressure']))
                         #do something to return solenoid attribute
                 else:
                     assert False
                 self._queue.task_done()
 
         except Exception as e:
-            self._logger.exception(e)
+            logging.exception(e)
             os._exit(1)
