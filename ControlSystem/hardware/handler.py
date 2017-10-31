@@ -132,7 +132,7 @@ class ArduinoHandler:
 			raise TimeoutError('{} did not execute'.format(cmd))
 
 	def query(self,cmd):
-		self._ser.write(b'PING')
+		self._ser.write(cmd.encode())
 		time.sleep(0.1)
 		result = self._ser.readline()
 		logging.debug(result)

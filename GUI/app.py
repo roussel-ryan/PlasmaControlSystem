@@ -77,13 +77,17 @@ class PlasmaApp:
 		)
 
 		logging.info('Updating GUI values, step {}'.format(self.update_count))
+		logging.info('Controller dict items: {}'.format(dir(self.controller)))
+
 		#populate system data for periodic monitoring
-		for name,value in self.controller.__dict__.items():
+		for name in dir(self.controller):
 			#self._logger.debug(name)
 			if not name[0] == '_':
 				try:
 					device_name = name.split('_')[0]
 					attribute = name.split('_')[1]
+					value = getattr(self.controller,name)
+					logging.info('Updating {}_{} to value {}'.format(device_name,attribute,value))
 					self.system_data[device_name][attribute] = value
 				except IndexError:
 					pass
