@@ -21,7 +21,7 @@ class PlasmaSource:
         logging.info('Beginning connections to devices')
 
         #self._TDK_handler = VISAHandler('TCPIP0::169.254.223.84::inst0::INSTR',RS485_enabled=True)
-        self._Arduino_handler = ArduinoHandler('COM4')
+        self._Arduino_handler = ArduinoHandler('COM3')
 
         #start threads and queue
         #self._logger.info('Starting queue')

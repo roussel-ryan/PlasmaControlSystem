@@ -109,7 +109,7 @@ class ArduinoHandler:
 	def __init__(self,port,baud_rate=9600):
 		self._port = port
 		self._baud_rate = baud_rate
-
+		self._ser = None
 		self._connect()
 
 	def _connect(self):
@@ -124,6 +124,8 @@ class ArduinoHandler:
 			logging.exception(e)
 
 	def write(self,cmd):
+		if self._ser is None:
+			return
 		self._ser.write(cmd.encode())
 		time.sleep(0.1)
 		if 'Done' in self._ser.readline():
@@ -132,6 +134,8 @@ class ArduinoHandler:
 			raise TimeoutError('{} did not execute'.format(cmd))
 
 	def query(self,cmd):
+		if self._ser is None:
+			return None
 		self._ser.write(cmd.encode())
 		time.sleep(0.1)
 		result = self._ser.readline()
@@ -142,4 +146,5 @@ class ArduinoHandler:
 			raise TimeoutError('{} did not return anything'.format(cmd))
 
 	def close(self):
-		self._ser.close()
+		if self._ser is not None:
+			self._ser.close()
