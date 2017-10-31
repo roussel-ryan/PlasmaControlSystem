@@ -81,6 +81,8 @@ class PlasmaSource:
                 elif cmd_type == 'GET':
                     if cmd_device == 'HEATER' or cmd_device == 'DISCHARGE':
                         #self._TDK_handler.select_RS485_device(self._tdk_RS485_addresses[cmd_device])
+
+                        #self._state[cmd_device+'_'+cmd_attribute] = #self._TDK_handler.query(self._tdk_set_commands[cmd_attribute].format(cmd_value))
                         with self._state_lock:
                             pass
                             #self._state['_'.join(cmd_device.lower(),cmd_attribute.lower())] = self._TDK_handler.query(self._tdk_query_commands[cmd_attribute])

@@ -4,7 +4,7 @@ import logging.config
 import time
 import threading
 import queue
-import yaml
+#import yaml
 
 import numpy as np
 import tkinter as ttk
@@ -38,15 +38,15 @@ def main():
 		plasma_controller.stop()
 		root.destroy()
 
-def load_logging_config():
-	with open("logging_config.yml", 'r') as stream:
-		try:
-			config = yaml.load(stream)
-		except yaml.YAMLError as exc:
-			print(exc)
-	logging.config.dictConfig(config)
-	PIL_logger = logging.getLogger('PIL')
-	PIL_logger.setLevel(logging.CRITICAL)
+#def load_logging_config():
+#	with open("logging_config.yml", 'r') as stream:
+#		try:
+#			config = yaml.load(stream)
+#		except yaml.YAMLError as exc:
+#			print(exc)
+#	logging.config.dictConfig(config)
+#	PIL_logger = logging.getLogger('PIL')
+#	PIL_logger.setLevel(logging.CRITICAL)
 
 if __name__=='__main__':
 	main()

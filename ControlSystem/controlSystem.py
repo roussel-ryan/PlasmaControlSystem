@@ -80,6 +80,10 @@ class PlasmaSourceControl(object):
     def heater_voltage(self):
         return self._source.get_state('heater_voltage')
 
+    @property
+    def chamber_pressure(self):
+        return self._source.get_state('heater_voltage')
+
     @solenoid_current.setter
     @_append_set_command_to_queue
     @_update_setpoint
@@ -114,6 +118,10 @@ class PlasmaSourceControl(object):
     @_update_setpoint
     @_append_set_command_to_queue
     def discharge_voltage(self,discharge_voltage):
+        pass
+
+    @chamber_pressure.setter
+    def chamber_pressure(self,dummy):
         pass
 
 
