@@ -11,9 +11,9 @@ class Panel:
 		self.frame = ttk.Frame(master)
 		self.members = {}
 		self.query_items = {}
-		
+
 		self.logger = logging.getLogger('gui')
-		
+
 	def gather_and_pack(self):
 		for name,item in self.members.items():
 			item.monitor_frame.pack()
@@ -21,43 +21,48 @@ class Panel:
 			for value in item.query_items:
 				self.query_items[item.name.lower()].append(value)
 		self.logger.debug('Panel "{}" items: {}'.format(self.name,self.query_items))
-		
-	def update(self,data={}):
+
+	def update(self,data):
 		"""
 			Updates gui monitors
-			Data needs to be in the form of {monitor_name:{attribute,value}}
+			Data needs to be in the form of {name_attribute:value}
 			members refers to each monitor
 		"""
-		for object_name,value_dict in data.items():
-			try:
-				if issubclass(type(self.members[object_name]),monitors.Monitor):
-					self.members[object_name].update(value_dict)
-			except KeyError:
-				pass
-					
-	
-		
-class MonitorPanel(Panel):	
+		if self.name == 'control_diagram':
+			self.members['control_diagram'].update(data)
+		else:
+			for name,value in data.items():
+				try:
+					device_name = name.split('_')[0]
+					device_attr = name.split('_')[1]
+					if issubclass(type(self.members[device_name]),monitors.Monitor):
+						self.members[device_name].update({device_attr:value})
+				except KeyError:
+					pass
+
+
+
+class MonitorPanel(Panel):
 	def __init__(self,master):
 		Panel.__init__(self,master,'monitor_panel')
-		
+
 		self.heater_monitor = monitors.SetpointMonitor(self.frame,'Heater')
 		self.heater_monitor.add_setpoint('Current','A')
 		self.heater_monitor.add_setpoint('Voltage','V')
 		self.members[self.heater_monitor.name.lower()] = self.heater_monitor
-		
+
 		self.discharge_monitor = monitors.SetpointMonitor(self.frame,'Discharge')
 		self.discharge_monitor.add_setpoint('Current','A')
 		self.discharge_monitor.add_setpoint('Voltage','V')
 		self.members[self.discharge_monitor.name.lower()] = self.discharge_monitor
-		
+
 		self.solenoid_monitor = monitors.SetpointMonitor(self.frame,'Solenoid')
 		self.solenoid_monitor.add_setpoint('Current','A')
 		self.solenoid_monitor.add_setpoint('Voltage','V')
 		self.members[self.solenoid_monitor.name.lower()] = self.solenoid_monitor
-		
+
 		self.gather_and_pack()
-	
+
 	def get_input(self):
 		self.inputs = {}
 		for monitor_name,monitor in self.members.items():
@@ -66,7 +71,7 @@ class MonitorPanel(Panel):
 				val = monitor.get_new_setpoint_value(setpoint_name)
 				if val:
 					self.inputs[monitor_name][setpoint_name] = val
-			
+
 		return self.inputs
 
 class ControlPanel(Panel):
@@ -76,7 +81,7 @@ class ControlPanel(Panel):
 		self.members['control_diagram'] = self.control
 		for name,item in self.members.items():
 			item.control_frame.pack()
-		
+
 
 class InterlockPanel(Panel):
 	def __init__(self,master):
@@ -88,7 +93,7 @@ class InterlockPanel(Panel):
 		self.interlock.add_interlock('Comm')
 		self.members[self.interlock.name] = self.interlock
 		self.gather_and_pack()
-		
+
 class BottomButtons(Panel):
 	def __init__(self,master):
 		Panel.__init__(self,master,'button_panel')
@@ -100,12 +105,10 @@ class BottomButtons(Panel):
 
 	def test(self):
 		logging.debug('click')
-		
+
 class LogBox(Panel):
 	def __init__(self,master):
 		Panel.__init__(self,master,'log_panel')
 		st = ttk.Listbox(self.frame,width=70)#,bg='black',fg='white',font=('Ariel',12,'bold'))
 		logger = logging.getLogger('gui_box')
 		st.pack()
-			
-			

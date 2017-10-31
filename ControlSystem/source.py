@@ -33,7 +33,7 @@ class PlasmaSource:
         self._state = {}
         #intialize variable dict
         for ele in intial_state:
-            self._state[ele] = 0.0 
+            self._state[ele] = 0.0
         self._state_lock = threading.Lock()
 
 
@@ -65,7 +65,7 @@ class PlasmaSource:
         try:
             while True:
                 cmd = self._queue.get()
-                logging.info('Processing {}, {} cmds remain'.format(cmd,self._queue.qsize()))
+                logging.debug('Processing {}, {} cmds remain'.format(cmd,self._queue.qsize()))
                 cmd_type = cmd.split(' ')[0]
                 if cmd_type == 'TERMINATE':
                     return
@@ -97,7 +97,7 @@ class PlasmaSource:
                         with self._state_lock:
                             logging.debug('Getting pressure')
                             self._state['_'.join((cmd_device.lower(),cmd_attribute.lower()))] = float(self._Arduino_handler.query('GET_PRESSURE').decode().strip())
-                            logging.info('Pressure reading is {}'.format(self._state['chamber_pressure']))
+                            logging.debug('Pressure reading is {}'.format(self._state['chamber_pressure']))
                         #do something to return solenoid attribute
                 else:
                     assert False

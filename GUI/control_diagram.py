@@ -45,7 +45,7 @@ class ControlDiagram:
 		self.display_data['discharge_voltage'] = ttk.StringVar()
 		self.display_data['solenoid_current'] = ttk.StringVar()
 		self.display_data['solenoid_voltage'] = ttk.StringVar()
-		self.display_data['vacuum_pressure'] = ttk.StringVar()
+		self.display_data['chamber_pressure'] = ttk.StringVar()
 
 		for name,element in self.display_data.items():
 			element.set('----')
@@ -71,11 +71,12 @@ class ControlDiagram:
 
 		logging.debug(self.query_items)
 
-	def update(self,data={}):
-		for name,item in data.items():
-			for item_name,value in item.items():
-				full_name = '_'.join([name,item_name])
-				self.display_data[full_name].set('{:3.2f}'.format(value))
+	def update(self,data):
+		for name,value in data.items():
+			try:
+				self.display_data[name].set('{:3.2f}'.format(value))
+			except KeyError:
+				pass
 
 	def change_diagram(self,new_diagram):
 		self.canvas.delete(self.canvas.find_all()[0])

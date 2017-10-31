@@ -13,8 +13,8 @@ from GUI import app
 from ControlSystem import controlSystem
 
 def main():
-	logging.basicConfig(level=logging.DEBUG)
-	
+	logging.basicConfig(level=logging.INFO)
+
 	PIL_logger = logging.getLogger('PIL')
 	PIL_logger.setLevel(logging.CRITICAL)
 	#logging_level = logging.INFO

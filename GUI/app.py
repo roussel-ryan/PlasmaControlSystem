@@ -38,10 +38,9 @@ class PlasmaApp:
 
 		#populate system data dict
 		self.system_data = {}
-		for name,value in self.controller.__dict__.items():
-			if not name[0] == '_':
-				device_name = name.split('_')[0]
-				self.system_data[device_name] = {}
+		for name in self.controller.state_variables:
+			self.system_data[name] = 0.0
+
 
 		# button_t = ttk.Button(master,text='True',command = interlock_panel.interlock.members['water'].set_true)
 		# button_f = ttk.Button(master,text='False',command = interlock_panel.interlock.members['water'].set_false)
@@ -80,20 +79,19 @@ class PlasmaApp:
 		#logging.info('Controller dict items: {}'.format(dir(self.controller)))
 
 		#populate system data for periodic monitoring
-		for name in dir(self.controller.state_variables):
+		for name in self.controller.state_variables:
 			#self._logger.debug(name)
-			if not name[0] == '_':
-				try:
-					device_name = name.split('_')[0]
-					attribute = name.split('_')[1]
-					value = getattr(self.controller,name)
-					logging.info('Updating {}_{} to value {}'.format(device_name,attribute,value))
-					self.system_data[device_name][attribute] = value
-				except IndexError:
-					pass
+			try:
+				value = getattr(self.controller,name)
+				logging.debug('Updating {} to value {}'.format(name,value))
+				self.system_data[name] = value
+			except IndexError as e:
+				logging.exception(e)
+
+		logging.debug(self.system_data)
 		self.monitor_panel.update(self.system_data)
 		self.interlock_panel.update(self.system_data)
-		self.control_panel.update(self.system_data)
+		self.control_panel.control.update(self.system_data)
 		#try:
 		#	if self.plasma_handler.queue.qsize():
 		#		logging.info(self.plasma_handler.queue.get(0,2))
