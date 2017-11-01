@@ -1,5 +1,6 @@
 from ControlSystem.PlasmaChamber import PlasmaChamber
-from GUI.app import App
+from UserInterface.Application import Application
+#from GUI.app import App
 import logging
 import tkinter as ttk
 
@@ -9,7 +10,7 @@ def main():
     try:
         plasma_chamber = PlasmaChamber()
         root = ttk.Tk()
-        App(root, plasma_chamber)
+        Application(root, plasma_chamber)
         root.mainloop()
         print('\033[32mterminating normally\033[0m')
     except Exception as e:
