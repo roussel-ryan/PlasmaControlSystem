@@ -18,13 +18,16 @@ class QueueManager(object):
         self._queue = queue.Queue()
         self._updater = Updater.Updater(self._queue)
         self._state_lock = threading.Lock()
+        self._terminate = False
+        self._terminate_lock = threading.Lock()
         self._thread = threading.Thread(target=self.processQueue)
         self._thread.start()
 
     def stop(self):
         self._updater.stop()
         self._logger.debug('terminating queue processing thread')
-        self._queue.put('TERMINATE')
+        with self._terminate_lock:
+            self._terminate = True
         self._thread.join()
         self._arduino_handler.disconnect()
 
@@ -69,9 +72,10 @@ class QueueManager(object):
         try:
             self._logger.debug('queue processing thread starting')
             while True:
+                with self._terminate_lock:
+                    if self._terminate:
+                        return
                 command = self._queue.get()
-                if command == 'TERMINATE':
-                    return
                 self.executeCommand(command)
                 self._queue.task_done()
         except Exception as e:
