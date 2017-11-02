@@ -6,7 +6,7 @@ import os
 
 class Updater(object):
 
-    time_interval = 3
+    time_interval = 5
 
     commands = (
         'GET_SOLENOID_CURRENT',

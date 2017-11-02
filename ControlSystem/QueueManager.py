@@ -32,7 +32,7 @@ class QueueManager(object):
         self._arduino_handler.disconnect()
 
     def addCommand(self, command):
-        self._logger.debug('adding command \'{}\' to the queue'.format(command))
+        self._logger.debug('adding command \'{}\' to the queue (queue length is now {})'.format(command, self._queue.qsize()))
         self._queue.put(command)
 
     def getState(self, name):
@@ -43,7 +43,7 @@ class QueueManager(object):
         self._logger.debug('executing command \'{}\' (queue length is now {})'.format(command, self._queue.qsize()))
         if command == 'GET_SOLENOID_CURRENT':
             values = []
-            for _ in range(10):
+            for _ in range(3):
                 value = self._arduino_handler.query('GET_SOLENOID_CURRENT')
                 if value is None:
                     result = None
