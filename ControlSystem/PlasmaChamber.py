@@ -2,6 +2,7 @@ from . import QueueManager
 
 
 class PlasmaChamber(object):
+    """ Represents the plasma chamber. """
 
     def __init__(self):
         self._queue_manager = QueueManager.QueueManager()
@@ -13,27 +14,52 @@ class PlasmaChamber(object):
         }
 
     def stop(self):
+        """
+        Halts all threads and closes all connections. Must be called before the
+        PlasmaChamber object goes out of scope.
+        """
         self._queue_manager.stop()
 
     def get(self, name):
+        """
+        Name should be one of the following:
+        • solenoid_current
+        • solenoid_voltage
+        • heater_current
+        • heater_voltage
+        • discharge_current
+        • discharge_voltage
+        • chamber_pressure
+        """
         assert name in ('solenoid_current', 'solenoid_voltage',
         'heater_current', 'heater_voltage', 'discharge_current',
         'discharge_voltage', 'chamber_pressure')
         if name == 'solenoid_current':
-            return self._queue_manager.getState('solenoid_current')
+            return self._queue_manager.getIntermediateValue('solenoid_current')
         elif name == 'solenoid_voltage':
             return self._setpoints['solenoid_voltage']
         elif name == 'chamber_pressure':
-            return self._queue_manager.getState('chamber_pressure')
+            return self._queue_manager.getIntermediateValue('chamber_pressure')
         else:
             return None
 
     def set(self, name, value):
+        """
+        Name should be one of the following:
+        • solenoid_current
+        • solenoid_voltage
+        • heater_current
+        • heater_voltage
+        • discharge_current
+        • discharge_voltage
+        """
         assert name in ('solenoid_current', 'solenoid_voltage',
         'heater_current', 'heater_voltage', 'discharge_current',
         'discharge_voltage')
+        # prevent setting something to a value which it is already set to
         if value == self._setpoints[name]:
             return
+
         if name == 'solenoid_current':
             self._setpoints['solenoid_current'] = value
             self._queue_manager.addCommand('SET_SOLENOID_CURRENT {}'.format(value))
@@ -42,7 +68,16 @@ class PlasmaChamber(object):
             self._queue_manager.addCommand('SET_SOLENOID_VOLTAGE {}'.format(value))
 
     def getSetpoint(self, name):
+        """
+        Name should be one of the following:
+        • solenoid_current
+        • solenoid_voltage
+        • heater_current
+        • heater_voltage
+        • discharge_current
+        • discharge_voltage
+        """
         assert name in ('solenoid_current', 'solenoid_voltage',
         'heater_current', 'heater_voltage', 'discharge_current',
-        'discharge_voltage', 'chamber_pressure')
+        'discharge_voltage')
         return self._setpoints[name]
