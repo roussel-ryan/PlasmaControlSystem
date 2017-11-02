@@ -30,15 +30,15 @@ class MonitorPart(tk.Frame):
         self.pack()
 
     def update(self):
-        self.displayed_value.set(format(getattr(self.plasma_chamber, self.attribute_name)))
-        self.setpoint_value.set(format(getattr(self.plasma_chamber, self.attribute_name + '_setpoint')))
+        self.displayed_value.set(format(self.plasma_chamber.get(self.attribute_name)))
+        self.setpoint_value.set(format(self.plasma_chamber.getSetpoint(self.attribute_name)))
 
     def set(self):
         try:
             entered_value = self.entered_value.get()
         except Exception as e:
             return
-        setattr(self.plasma_chamber, self.attribute_name, entered_value)
+        self.plasma_chamber.set(self.attribute_name, entered_value)
 
 
 class MonitorBox(tk.LabelFrame):

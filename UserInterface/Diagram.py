@@ -38,10 +38,7 @@ class Diagram(tk.Frame):
 
     def update(self):
         foo = lambda x: str(x) if x is not None else '----'
-        self.display_data['heater_current'].set(foo(self.plasma_chamber.heater_current))
-        self.display_data['heater_voltage'].set(foo(self.plasma_chamber.heater_voltage))
-        self.display_data['discharge_current'].set(foo(self.plasma_chamber.discharge_current))
-        self.display_data['discharge_voltage'].set(foo(self.plasma_chamber.discharge_voltage))
-        self.display_data['solenoid_current'].set(foo(self.plasma_chamber.solenoid_current))
-        self.display_data['solenoid_voltage'].set(foo(self.plasma_chamber.solenoid_voltage))
-        self.display_data['chamber_pressure'].set(foo(self.plasma_chamber.chamber_pressure))
+        for name in ('solenoid_current', 'solenoid_voltage',
+        'heater_current', 'heater_voltage', 'discharge_current',
+        'discharge_voltage', 'chamber_pressure'):
+            self.display_data[name].set(foo(self.plasma_chamber.get(name)))

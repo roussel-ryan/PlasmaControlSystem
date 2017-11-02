@@ -1,4 +1,5 @@
 from . import ArduinoHandler
+from . import Updater
 import logging
 import os
 import platform
@@ -6,53 +7,73 @@ import queue
 import threading
 
 
-arduino_port = '/dev/cu.usbmodem1421' if platform.system() == 'Darwin' else 'COM3'
-
-
 class QueueManager(object):
 
     def __init__(self):
-        self._arduino_handler = ArduinoHandler.ArduinoHandler(arduino_port)
+        self._arduino_handler = ArduinoHandler.ArduinoHandler('/dev/cu.usbmodem1421' if platform.system() == 'Darwin' else 'COM3')
         self._state = {
-            'solenoid_current': None, 'solenoid_voltage': None,
-            'heater_current': None, 'heater_voltage': None,
-            'discharge_current': None, 'discharge_voltage': None,
-            'chamber_pressure': None
+            'solenoid_current': None, 'chamber_pressure': None
         }
+        self._logger = logging.getLogger('QueueManager')
         self._queue = queue.Queue()
+        self._updater = Updater.Updater(self._queue)
         self._state_lock = threading.Lock()
-        self._thread = threading.Thread(target=self.process_queue)
+        self._thread = threading.Thread(target=self.processQueue)
         self._thread.start()
 
     def stop(self):
+        self._updater.stop()
+        self._logger.debug('terminating queue processing thread')
         self._queue.put('TERMINATE')
         self._thread.join()
         self._arduino_handler.disconnect()
 
-    def add_command(self, command):
-        logging.debug('adding command \'{}\' to the queue (length is now {})'.format(command, self._queue.qsize()))
+    def addCommand(self, command):
+        self._logger.debug('adding command \'{}\' to the queue'.format(command))
         self._queue.put(command)
 
-    def get_state(self, name):
+    def getState(self, name):
         with self._state_lock:
             return self._state[name]
 
     def executeCommand(self, command):
+        self._logger.debug('executing command \'{}\' (queue length is now {})'.format(command, self._queue.qsize()))
         if command == 'GET_SOLENOID_CURRENT':
-            pass
+            values = []
+            for _ in range(10):
+                value = self._arduino_handler.query('GET_SOLENOID_CURRENT')
+                if value is None:
+                    result = None
+                    break
+                values.append(float(value))
+            else:
+                result = sum(values) / len(values)
+            with self._state_lock:
+                self._state['solenoid_current'] = value
+        elif command == 'GET_PRESSURE':
+            value = self._arduino_handler.query('')
+            if value is None:
+                result = None
+            else:
+                result = float(value)
+            with self._state_lock:
+                self._state['chamber_pressure'] = result
+        elif command.startswith('SET_SOLENOID_CURRENT'):
+            self._arduino_handler.query(command)
+        elif command.startswith('SET_SOLENOID_VOLTAGE'):
+            self._arduino_handler.query(command)
+        else:
+            assert False
 
-    def process_queue(self):
+    def processQueue(self):
         try:
-            logging.debug('starting queue processing thread')
+            self._logger.debug('queue processing thread starting')
             while True:
                 command = self._queue.get()
-                logging.debug('executing command \'{}\' (queue length is now {})'.format(command, self._queue.qsize()))
                 if command == 'TERMINATE':
                     return
                 self.executeCommand(command)
                 self._queue.task_done()
         except Exception as e:
-            print(e)
-            import sys
-            sys.stdout.flush()
+            self._logger.exception(e)
             os._exit(1)
