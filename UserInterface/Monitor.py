@@ -9,6 +9,12 @@ def format(value):
 
 
 class MonitorPart(tk.Frame):
+    """
+    Represents one line inside a box. Conisists of a name label, a displayed
+    value representing the measured value, a displayed value representing the
+    setpoint, a box for entering in a new setpoint, and finally a label with the
+    unit.
+    """
 
     def __init__(self, master, plasma_chamber, attribute_name, name, unit):
         super().__init__(master)
@@ -42,6 +48,7 @@ class MonitorPart(tk.Frame):
 
 
 class MonitorBox(tk.LabelFrame):
+    """ Represents one monitor box. """
 
     def __init__(self, master, plasma_chamber, current_attribute_name, voltage_attribute_name, name):
         super().__init__(master, text=name)
@@ -59,6 +66,7 @@ class MonitorBox(tk.LabelFrame):
 
 
 class Monitor(tk.Frame):
+    """ Represents all three monitor boxes and the set button. """
 
     def __init__(self, master, plasma_chamber):
         super().__init__(master)
@@ -67,7 +75,6 @@ class Monitor(tk.Frame):
         self.solenoid_monitor = MonitorBox(self, plasma_chamber, 'solenoid_current', 'solenoid_voltage', 'Solenoid')
         self.set_button = tk.Button(self, text='set', command=self.set)
         self.set_button.pack()
-        #self.pack()
 
     def update(self):
         self.heater_monitor.update()

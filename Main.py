@@ -12,11 +12,6 @@ def main():
         root = tk.Tk()
         Application(root, plasma_chamber)
         root.mainloop()
-        #plasma_chamber._queue_manager._queue.put('GET_SOLENOID_CURRENT')
-        #import time
-        #time.sleep(1)
-        #print(plasma_chamber.solenoid_current)
-        #print('\033[32mterminating normally\033[0m')
     except Exception as e:
         print('\033[31mterminating abnormally\033[0m')
         raise e

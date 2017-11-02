@@ -4,6 +4,9 @@ import tkinter as tk
 
 
 class Application(tk.Frame):
+    """
+    Represents the entire GUI.
+    """
 
     refresh_rate = 100
 
@@ -17,6 +20,9 @@ class Application(tk.Frame):
         self.update()
 
     def update(self):
+        """
+        Updates all the values in the GUI.
+        """
         self.diagram.update()
         self.monitor.update()
         self.master.after(self.refresh_rate, self.update)

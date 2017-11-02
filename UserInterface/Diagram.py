@@ -3,7 +3,17 @@ import os
 import PIL.ImageTk
 
 
+def format(value):
+    if value is None:
+        return '----'
+    else:
+        return '{0:.2f}'.format(value)
+
+
 class Diagram(tk.Frame):
+    """
+    The diagram of the plasma chamber.
+    """
 
     data_names = (
         'heater_current', 'heater_voltage', 'discharge_current',
@@ -37,7 +47,7 @@ class Diagram(tk.Frame):
             label.place(x=location[0], y=location[1], anchor=tk.CENTER)
 
     def update(self):
-        foo = lambda x: '{0:.2f}'.format(x) if x is not None else '----'
+        """ Updates displayed data. """
         for name in ('solenoid_current', 'solenoid_voltage',
         'heater_current', 'heater_voltage', 'discharge_current',
         'discharge_voltage', 'chamber_pressure'):
