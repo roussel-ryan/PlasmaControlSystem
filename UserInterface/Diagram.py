@@ -51,4 +51,4 @@ class Diagram(tk.Frame):
         for name in ('solenoid_current', 'solenoid_voltage',
         'heater_current', 'heater_voltage', 'discharge_current',
         'discharge_voltage', 'chamber_pressure'):
-            self.display_data[name].set(foo(self.plasma_chamber.get(name)))
+            self.display_data[name].set(format(self.plasma_chamber.get(name)))
