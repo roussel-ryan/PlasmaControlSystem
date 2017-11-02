@@ -12,15 +12,18 @@ class ArduinoHandler(object):
         self.connect()
 
     def connect(self):
+        logging.debug('attempting to establish connection to arduino')
         try:
             self._connection = serial.Serial(self._port, self._baud_rate)
+            logging.debug('arduino connection established')
         except serial.SerialException as e:
             logging.info('\033[31mcould not connect to arduino\033[0m')
 
-    def write(self, command):
+
+    def disconnect(self):
+        logging.debug('disconnecting from arduino')
         if self._connection is not None:
-            logging.debug('sending command \'{}\' to arduino'.format(command))
-            self._connection.write(command.encode())
+            self._connection.close()
 
     def query(self, command):
         if self._connection is None:
@@ -33,7 +36,3 @@ class ArduinoHandler(object):
             raise Exception('query \'{}\' did not return anything'.format(command))
         logging.debug('arduino replied \'{}\''.format(result))
         return result
-
-    def close(self):
-        if self._connection is not None:
-            self._connection.close()
