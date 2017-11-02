@@ -1,3 +1,6 @@
+from . import QueueManager
+
+
 class PlasmaChamber(object):
 
     state_variables = ('solenoid_current', 'solenoid_voltage', 'heater_current',
@@ -7,37 +10,38 @@ class PlasmaChamber(object):
     def __init__(self):
         self.water_interlock = False
         self.pressure_interlock = False
+        self._queue_manager = QueueManager.QueueManager()
 
     def stop(self):
         pass
 
     @property
     def solenoid_current(self):
-        return 0.0
+        return self._queue_manager.getState('solenoid_current')
 
     @property
     def solenoid_voltage(self):
-        return 0.0
+        return None
 
     @property
     def discharge_voltage(self):
-        return 0.0
+        return None
 
     @property
     def discharge_current(self):
-        return 0.0
+        return None
 
     @property
     def heater_current(self):
-        return 0.0
+        return None
 
     @property
     def heater_voltage(self):
-        return 0.0
+        return None
 
     @property
     def chamber_pressure(self):
-        return 0.0
+        return None
 
     @solenoid_current.setter
     def solenoid_current(self, solenoid_current):
