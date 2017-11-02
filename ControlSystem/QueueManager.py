@@ -49,9 +49,9 @@ class QueueManager(object):
             else:
                 result = sum(values) / len(values)
             with self._state_lock:
-                self._state['solenoid_current'] = value
+                self._state['solenoid_current'] = result
         elif command == 'GET_PRESSURE':
-            value = self._arduino_handler.query('')
+            value = self._arduino_handler.query('GET_PRESSURE')
             if value is None:
                 result = None
             else:
