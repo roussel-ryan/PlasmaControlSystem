@@ -31,6 +31,7 @@ class ArduinoHandler(object):
         Attempts to establish a serial connection. If this fails, the object is
         left in a disconnected state.
         """
+        assert self._connection is None
         self._logger.debug('connecting to arduino')
         try:
             self._connection = serial.Serial(self._port, self._baud_rate)

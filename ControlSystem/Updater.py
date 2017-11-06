@@ -10,7 +10,7 @@ class Updater(object):
     a queue.
     """
 
-    time_delay = 5
+    time_delay = 1
     """
     The number of seconds to wait between adding commands. The actual amount of
     time may be different than this, but should be roughly proportional.
@@ -18,7 +18,11 @@ class Updater(object):
 
     commands = (
         'GET_SOLENOID_CURRENT',
-        'GET_PRESSURE'
+        'GET_PRESSURE',
+        'GET_HEATER_VOLTAGE',
+        'GET_HEATER_CURRENT',
+        'GET_DISCHARGE_VOLTAGE',
+        'GET_DISCHARGE_CURRENT'
     )
     """
     Which commands to add. Only one command is added at a time, and the Updater

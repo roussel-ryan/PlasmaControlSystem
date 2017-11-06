@@ -40,6 +40,14 @@ class PlasmaChamber(object):
             return self._setpoints['solenoid_voltage']
         elif name == 'chamber_pressure':
             return self._queue_manager.getIntermediateValue('chamber_pressure')
+        elif name == 'heater_current':
+            return self._queue_manager.getIntermediateValue('chamber_pressure')
+        elif name == 'heater_voltage':
+            return self._queue_manager.getIntermediateValue('chamber_pressure')
+        elif name == 'discharge_current':
+            return self._queue_manager.getIntermediateValue('chamber_pressure')
+        elif name == 'discharge_voltage':
+            return self._queue_manager.getIntermediateValue('chamber_pressure')
         else:
             return None
 
@@ -66,6 +74,18 @@ class PlasmaChamber(object):
         elif name == 'solenoid_voltage':
             self._setpoints['solenoid_voltage'] = value
             self._queue_manager.addCommand('SET_SOLENOID_VOLTAGE {}'.format(value))
+        elif name == 'heater_current':
+            self._setpoints['heater_current'] = value
+            self._queue_manager.addCommand('SET_HEATER_CURRENT {}'.format(value))
+        elif name == 'heater_voltage':
+            self._setpoints['heater_voltage'] = value
+            self._queue_manager.addCommand('SET_HEATER_VOLTAGE {}'.format(value))
+        elif name == 'discharge_current':
+            self._setpoints['discharge_current'] = value
+            self._queue_manager.addCommand('SET_DISCHARGE_VOLTAGE {}'.format(value))
+        elif name == 'discharge_voltage':
+            self._setpoints['discharge_voltage'] = value
+            self._queue_manager.addCommand('SET_DISCHARGE_VOLTAGE {}'.format(value))
 
     def getSetpoint(self, name):
         """
