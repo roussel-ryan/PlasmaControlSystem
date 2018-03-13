@@ -18,9 +18,9 @@ void setup() {
 void loop() {
   String cmd = Serial.readString();
   if (cmd.length() != 0) {
-    if (cmd.startsWith("SET_VOLT")) {
+    if (cmd.startsWith("SET_SOLENOID_VOLTAGE")) {
       // SET VOLTAGE
-      double value = cmd.substring(9).toFloat();
+      double value = cmd.substring(20).toFloat();
       //if (value < 0 || value > 100) {
       //  Serial.println("ERROR: target voltage out of range (expected a value between 0 and 100 volts)");
       //  return;
@@ -32,14 +32,15 @@ void loop() {
       else if (analogValue > 255)
         analogValue = 255;
       analogWrite(voltageControllerPin, analogValue);
+      Serial.println("Done");
     }
-    else if (cmd.startsWith("GET_VOLT")) {
+    else if (cmd.startsWith("GET_SOLENOID_VOLTAGE")) {
       // GET VOLTAGE
       Serial.println(targetVoltage);
     }
-    else if (cmd.startsWith("SET_CURR")) {
+    else if (cmd.startsWith("SET_SOLENOID_CURRENT")) {
       // SET CURRENT
-      double value = cmd.substring(9).toFloat();
+      double value = cmd.substring(20).toFloat();
       //if (value < 0 || value > 100) {
       //  Serial.println("ERROR: target current out of range (expected a value between 0 and 100 amps)");
       //  return;
@@ -51,12 +52,13 @@ void loop() {
       else if (analogValue > 255)
         analogValue = 255;
       analogWrite(currentControllerPin, analogValue);
+      Serial.println("Done");
     }
-    else if (cmd.startsWith("GET_CURR")) {
+    else if (cmd.startsWith("GET_TARGET_SOLENOID_CURRENT")) {
       // GET CURRENT
       Serial.println(targetCurrent);
     }
-    else if (cmd.startsWith("READ_CURR")) {
+    else if (cmd.startsWith("GET_SOLENOID_CURRENT")) {
       // READ CURRENT
       Serial.println(0.1105 * analogRead(currentIndicatorPin) + 0.4321);
     }
@@ -65,9 +67,24 @@ void loop() {
       Serial.println("ok");
     }
     else if (cmd.startsWith("GET_PRESSURE")) {
-      Serial.println(analogRead(pressureIndicatorPin));
+      Serial.println(getPressure());
     }
     else
       Serial.println("ERROR: unknown command");
   }
+}
+
+
+float getPressure(){
+  int i = 0;
+  float voltagesum = 0;
+  while (i < 25 ){
+    float volt = analogRead(pressureIndicatorPin);
+    volt = volt * (5.0/1024.0);
+    voltagesum += volt;
+    i += 1;
+  }
+  float voltavg = voltagesum / 25.0;
+  float pressure = (voltavg - 1.06)/0.496; //r=1, ignored smallest pressure values
+  return(pressure);
 }
