@@ -85,6 +85,7 @@ float getPressure(){
     i += 1;
   }
   float voltavg = voltagesum / 25.0;
-  float pressure = (voltavg - 1.06)/0.496; //r=1, ignored smallest pressure values
+  float logpressure = (voltavg - 1.06)/0.496; //r=1, ignored smallest pressure values
+  float pressure = pow(10,(logpressure-8));
   return(pressure);
 }
